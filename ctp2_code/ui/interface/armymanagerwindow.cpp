@@ -1,11 +1,41 @@
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Army manager window
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// - None
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
+#include "armymanagerwindow.h"
+
 #include "aui_uniqueid.h"
 #include "aui_ldl.h"
 #include "aui_blitter.h"
 #include "c3ui.h"
 
-#include "armymanagerwindow.h"
 #include "Army.h"
 #include "ArmyData.h"
 #include "ArmyPool.h"
@@ -33,14 +63,13 @@
 #include "GameEventUser.h"
 #include "Events.h"
 #include "primitives.h"
-#include "colorset.h"
+#include "colorset.h"           // g_colorSet
 
 #include "network.h"
 
 #include "UnitPool.h"
 
 extern C3UI *g_c3ui;
-extern ColorSet	*g_colorSet;
 
 static ArmyManagerWindow *s_armyWindow = NULL;
 static MBCHAR *s_armyWindowBlock = "ArmyManager";
@@ -84,12 +113,10 @@ ArmyManagerWindow::~ArmyManagerWindow()
 	if(m_armies) {
 		m_armies->DeleteAll();
 		delete m_armies;
-		m_armies = NULL;
 	}
 
 	if(m_window) {
 		aui_Ldl::DeleteHierarchyFromRoot(s_armyWindowBlock);
-		m_window = NULL;
 	}
 }
 
@@ -98,7 +125,7 @@ AUI_ERRCODE ArmyManagerWindow::Initialize()
 	if(s_armyWindow)
 		return AUI_ERRCODE_OK;
 
-	AUI_ERRCODE err;
+	AUI_ERRCODE err = AUI_ERRCODE_OK;
 	s_armyWindow = new ArmyManagerWindow(&err);
 	Assert(err == AUI_ERRCODE_OK);
 
@@ -654,8 +681,7 @@ void ArmyManagerWindow::AddSelectedUnits()
 	}
 
 	sint32 i;
-	static CellUnitList units;
-	units.Clear();
+	CellUnitList units;
 
 	for(i = 0; i < k_MAX_ARMY_SIZE; i++) {		
 		MBCHAR switchName[k_MAX_NAME_LEN];
@@ -680,7 +706,7 @@ void ArmyManagerWindow::AddSelectedUnits()
 				g_network.SendGroupRequest(units, node->m_army);
 			}
 		} else {
-			g_network.SendGroupRequest(units, Army(0));
+			g_network.SendGroupRequest(units, Army());
 		}
 		return;
 	}
@@ -773,8 +799,7 @@ void ArmyManagerWindow::RemoveSelectedUnits()
 	theArmy = node->m_army;
 	sint32 i;
 
-	static CellUnitList units;
-	units.Clear();
+	CellUnitList units;
 
 	for(i = 0; i < k_MAX_ARMY_SIZE; i++) {		
 		MBCHAR switchName[k_MAX_NAME_LEN];

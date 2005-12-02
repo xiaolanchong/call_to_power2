@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Token handling for the old style database files.
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -18,7 +19,10 @@
 // Compiler flags
 // 
 // __MAKESPR__
+// - Probably supposed to generate the sprite make tool.
+//
 // __TILETOOL__
+// - Probably supposed to generate the tool for creating the *.til files.
 //
 // _JAPANESE
 // - Use SJIS token parsing when set.
@@ -40,7 +44,7 @@
 
 #include "Token.h"
 #include "ErrMsg.h"
-#include "globals.h"
+#include "Globals.h"
 #include "StrDB.h"
 #ifndef __MAKESPR__
 #include "AdvanceRecord.h"
@@ -832,7 +836,7 @@ sint32 Token::IsNumber(char *str)
 		str++ ;
 	
 	
-	if (*str == NULL)
+	if (0 == *str)
 		return (TRUE) ;
 	
 	

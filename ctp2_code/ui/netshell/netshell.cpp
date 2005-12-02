@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Network (multiplayer) user interface
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,13 +17,15 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// - None
 //
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
 // - Prevented memory leaks and debug exit popups.
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -81,7 +84,7 @@ AUI_ERRCODE NetShell::Enter( uint32 flags )
 		if ( !g_netshell )
 		{
 			
-			AUI_ERRCODE errcode;
+			AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 			g_netshell = new NetShell( &errcode );
 			Assert( AUI_NEWOK(g_netshell,errcode) );
@@ -140,9 +143,11 @@ AUI_ERRCODE NetShell::Enter( uint32 flags )
 				g_netshell->GotoScreen( SCREEN_ALLINONE );
 				w->Update();
 			}
-		} else
-			
+		} else {
+#ifdef WIN32
 			PostMessage( g_ui->TheHWND(), WM_CLOSE, 0, 0 );
+#endif
+		}
 	} else
 	
 		g_netshell->GotoScreen( SCREEN_CONNECTIONSELECT );
@@ -150,16 +155,19 @@ AUI_ERRCODE NetShell::Enter( uint32 flags )
 	return AUI_ERRCODE_OK;
 }
 
-class EnterMainMenuAction:public aui_Action
+class EnterMainMenuAction : public aui_Action
 {
-  public:
-	virtual ActionCallback Execute;
+public: 
+	virtual void	Execute
+	(                             
+		aui_Control	*	control,
+		uint32			action, 
+		uint32			data   
+	)
+    {
+        EnterMainMenu();
+    };
 };
-
-void EnterMainMenuAction::Execute(aui_Control *control, uint32 action, uint32 data)
-{
-	EnterMainMenu();
-}
 
 
 void NetShell::Leave( uint32 flags, BOOL safe )
@@ -254,7 +262,7 @@ AUI_ERRCODE NetShell::InitCommon( void )
 	g_nsImprovements = new ns_Improvements;
 	g_nsWonders = new ns_Wonders;
 
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 	m_bg = new aui_Control(
 		&errcode,
@@ -273,7 +281,7 @@ AUI_ERRCODE NetShell::InitCommon( void )
 
 AUI_ERRCODE NetShell::CreateScreens( void )
 {
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 	aui_Screen *screen;
 	aui_Window *window;
@@ -596,8 +604,8 @@ void NetShell::DestroyScreens( void )
 	SaveGameSetupList();
 
 
-	
-	for ( sint32 i = 0; i < (sint32)SCREEN_MAX; i++ )
+	sint32 i;
+	for ( i = 0; i < (sint32)SCREEN_MAX; i++ )
 		if ( m_screens[ i ] ) delete m_screens[ i ];
 	memset( m_screens, 0, sizeof( m_screens ) );
 

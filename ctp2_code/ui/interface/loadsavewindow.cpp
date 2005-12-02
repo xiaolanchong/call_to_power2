@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Save and load game window
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,17 +17,22 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// _JAPANESE
+// - Adds special modifications for a japanese version of the executable
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
 // - Repaired memory leak.
+// - Removed refferences to the civilisation database. (Aug 20th 2005 Martin Gühmann)
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
 #include "c3.h"
-
+#include "loadsavewindow.h"
 
 #include "aui.h"
 #include "aui_ldl.h"
@@ -39,7 +45,6 @@
 #include "aui_stringtable.h"
 #include "aui_tabgroup.h"
 #include "aui_directsurface.h"
-
 #include "c3ui.h"
 #include "c3_button.h"
 #include "c3_static.h"
@@ -49,46 +54,22 @@
 #include "texttab.h"
 #include "pointerlist.h"
 #include "c3textfield.h"
-
-#include "StrDB.h"
-#include "CivilisationDB.h"
-#include "CivilisationPool.h"
-#include "profileDB.h"
-#include "TurnCnt.h"
-
+#include "colorset.h"               // g_colorSet
+#include "player.h"                 // g_player
+#include "StrDB.h"                  // g_theStringDB
+#include "profileDB.h"              // g_theProfileDB
+#include "TurnCnt.h"                // g_turn
 #include "spnewgamewindow.h" 
-#include "loadsavewindow.h"
-
-
 #include "linegraph.h"
 #include "infowin.h"
-
-
 #include "radarmap.h"
-
 #include "pixelutils.h"
-
+#include "SelItem.h"                // g_selected_item
 #include "TurnYearStatus.h"
 
 extern C3UI							*g_c3ui;
-extern StringDB						*g_theStringDB;
-extern CivilisationDatabase			*g_theCivilisationDB;
-extern ProfileDB					*g_theProfileDB;
-extern TurnCount					*g_turn;
-
-#include "player.h"
-extern Player						**g_player;
-
-
-#include "colorset.h"
-extern ColorSet						*g_colorSet;
-
-extern LoadSaveWindow				*g_loadsaveWindow;
-
 extern sint32						g_is565Format;
 
-#include "SelItem.h"
-extern SelectedItem					*g_selected_item;
 
 #define k_LOADSAVE_AUTOSORT_COL		-2
 
@@ -126,7 +107,7 @@ AUI_ERRCODE LoadSaveWindow::InitCommonLdl(MBCHAR *ldlBlock)
 	MBCHAR			tabBlock[ k_AUI_LDL_MAXBLOCK + 1 ];
 	MBCHAR			block[ k_AUI_LDL_MAXBLOCK + 1 ];
 
-	AUI_ERRCODE		errcode;
+	AUI_ERRCODE		errcode = AUI_ERRCODE_OK;
 
 	
 
@@ -328,7 +309,7 @@ LoadSaveWindow::~LoadSaveWindow()
 
 void LoadSaveWindow::FillListOne(void)
 {
-	AUI_ERRCODE		errcode;
+	AUI_ERRCODE		errcode = AUI_ERRCODE_OK;
 
 	if (!m_fileList) return;
 
@@ -363,7 +344,7 @@ void LoadSaveWindow::FillListOne(void)
 
 void LoadSaveWindow::FillListTwo(GameInfo *info)
 {
-	AUI_ERRCODE		errcode;
+	AUI_ERRCODE		errcode = AUI_ERRCODE_OK;
 
 	Assert(m_listTwo);
 	if (m_listTwo == NULL) return;
@@ -417,7 +398,7 @@ void LoadSaveWindow::FillListTwo(GameInfo *info)
 
 void LoadSaveWindow::FillCivList(SaveInfo *info)
 {
-	AUI_ERRCODE		errcode;
+	AUI_ERRCODE		errcode = AUI_ERRCODE_OK;
 
 	Assert(m_civsList);
 	if (m_civsList == NULL) return;
@@ -1275,9 +1256,9 @@ BOOL LoadSaveWindow::NoName( void )
 
 LSCivsListItem::LSCivsListItem(AUI_ERRCODE *retval, MBCHAR *ldlBlock, const MBCHAR *name)
 :
-	c3_ListItem( retval, ldlBlock),
 	aui_ImageBase(ldlBlock),
 	aui_TextBase(ldlBlock, (MBCHAR *)NULL),
+	c3_ListItem( retval, ldlBlock),
 	m_myItem(NULL)
 {
 	
@@ -1315,11 +1296,11 @@ sint32 LSCivsListItem::Compare(c3_ListItem *item2, uint32 column)
 
 LSGamesListItem::LSGamesListItem(AUI_ERRCODE *retval, MBCHAR *ldlBlock, GameInfo *info)
 :
-	c3_ListItem( retval, ldlBlock),
 	aui_ImageBase(ldlBlock),
 	aui_TextBase(ldlBlock, (MBCHAR *)NULL),
-	m_itemText(NULL),
-	m_itemIcon(NULL)
+	c3_ListItem( retval, ldlBlock),
+	m_itemIcon(NULL),
+	m_itemText(NULL)
 {
 	m_info = info;
 
@@ -1376,11 +1357,11 @@ sint32 LSGamesListItem::Compare(c3_ListItem *item2, uint32 column)
 
 LSSavesListItem::LSSavesListItem(AUI_ERRCODE *retval, MBCHAR *ldlBlock, SaveInfo *info)
 :
-	c3_ListItem( retval, ldlBlock),
 	aui_ImageBase(ldlBlock),
 	aui_TextBase(ldlBlock, (MBCHAR *)NULL),
-	m_itemText(NULL),
-	m_itemIcon(NULL)
+	c3_ListItem( retval, ldlBlock),
+	m_itemIcon(NULL),
+	m_itemText(NULL)
 {
 	m_info = info;
 

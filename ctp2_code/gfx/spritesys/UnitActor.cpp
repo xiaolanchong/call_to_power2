@@ -2,7 +2,8 @@
 //
 // Project      : Call To Power 2
 // File type    : C++ source
-// Description  : Unit
+// Description  : Unit actor
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,7 +17,18 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// _DEBUG
+// - Generates debug information when set.
+//
+// _DEBUG_MEMORY
+// - Generates debug information when set.
+//
+// _TEST
+// ?
+//
+// _ACTOR_DRAW_OPTIMIZATION
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
@@ -28,96 +40,66 @@
 //   by Martin Gühmann.
 // - Prevented crashes with invalid (i.e. killed or destroyed) units.
 // - PFT 29 mar 05, show # turns until city next grows a pop.
+// - Removed refferences to the civilisation database. (Aug 20th 2005 Martin Gühmann)
+// - Removed unnecessary include files. (Aug 28th 2005 Martin Gühmann)
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+// - Removed unused local variables. (Sep 9th 2005 Martin Gühmann)
+// - Fixed memory leaks.
 //
 //----------------------------------------------------------------------------
 
 #include "c3.h"
 
-#include "aui.h"
-#include "aui_surface.h"
 #include "aui_bitmapfont.h"
 
-#include "pixelutils.h"
-#include "tileutils.h"
 #include "primitives.h"
-#include "TileInfo.h"
-
-#include "Unit.h"	
 #include "UnitData.h"
 #include "SelItem.h"
-#include "XY_Coordinates.h"
-#include "World.h"
-#include "civarchive.h"
 #include "screenmanager.h"
-#include "Cell.h"
-
-#include "FacedSprite.h"
-#include "UnitSpriteGroup.h"
 #include "SpriteState.h"
-#include "Actor.h"
 #include "SpriteGroupList.h"
 #include "tiledmap.h"
-#include "Anim.h"
 #include "UnitActor.h"
-#include "ActorPath.h"
-#include "Action.h"
 #include "director.h"
 #include "colorset.h"
 #include "UnitPool.h"
 #include "ArmyPool.h"
 #include "maputils.h"
-#include "TurnCnt.h"
-#include "network.h"
-#include "SpriteStateDB.h"
-#include "AgeRecord.h"
 #include "cellunitlist.h"
-#include "WonderRecord.h"
 
 #include "soundmanager.h"
 
-#include "Civilisation.h"
-#include "CivilisationDB.h"
 #include "player.h"
 
 #include "debugmemory.h"
 #include "UnitRecord.h"
 
 #include "wonderutil.h"
-#include "TerrainRecord.h"
 
 #include "ArmyData.h"
 
 #include "CityStyleRecord.h"
 #include "AgeCityStyleRecord.h"
 
-BOOL		g_showHeralds = TRUE;
+BOOL                    g_showHeralds = TRUE;
 
-#define k_doInvisible FALSE
+#define k_SHIELD_ON_TIME        650
+#define k_SHIELD_OFF_TIME       150
 
-#define k_SHIELD_ON_TIME		650
-#define k_SHIELD_OFF_TIME		150
-
-extern ColorSet			*g_colorSet;
-extern SpriteGroupList	*g_unitSpriteGroupList;
-extern SpriteGroupList	*g_citySpriteGroupList;
-extern TiledMap			*g_tiledMap;
-extern Director			*g_director;
-extern SelectedItem		*g_selected_item;
+extern SpriteGroupList  *g_unitSpriteGroupList;
+extern SpriteGroupList  *g_citySpriteGroupList;
+extern TiledMap         *g_tiledMap;
+extern Director         *g_director;
+extern SelectedItem     *g_selected_item;
 extern UnitPool         *g_theUnitPool;
-extern ArmyPool			*g_theArmyPool;
-extern World			*g_theWorld;
-extern ScreenManager	*g_screenManager;
-extern SpriteStateDB	*g_theCitySpriteStateDB;
-extern TurnCount		*g_turn;
-extern SoundManager		*g_soundManager;
+extern ArmyPool         *g_theArmyPool;
+extern ScreenManager    *g_screenManager;
+extern SoundManager     *g_soundManager;
 
-extern CivilisationDatabase	*g_theCivilisationDB;
-extern Player			**g_player;
-
-extern BOOL				g_unitCompletedAction;
+extern Player           **g_player;
 
 #include "profileDB.h"
-extern ProfileDB		*g_theProfileDB;
+extern ProfileDB        *g_theProfileDB;
 
 #ifndef _DEBUG_MEMORY
 #define STOMPCHECK() if (m_curAction) { Assert(_CrtIsMemoryBlock(m_curAction, sizeof(Action),NULL,NULL,NULL));}
@@ -479,7 +461,6 @@ void UnitActor::ChangeType(SpriteState *ss, sint32 type,  Unit id, BOOL updateVi
 		   m_playerNum == g_selected_item->GetVisiblePlayer() &&
 		   !m_isUnseenCellActor)
 		{
-			BOOL revealedUnexplored = FALSE;
 			DPRINTF(k_DBG_INFO, ("Adding vision for %lx, owner %d, range %lf, center: %d,%d\n",
 								 m_unitID, m_playerNum, m_unitVisionRange,
 								 m_pos.x, m_pos.y));
@@ -504,18 +485,15 @@ void UnitActor::ChangeType(SpriteState *ss, sint32 type,  Unit id, BOOL updateVi
 
 void UnitActor::AddIdle(BOOL NoIdleJustDelay)
 {
-	Anim		*anim;
-
-	anim = GetAnim(UNITACTION_IDLE);
-	m_frame = 0;
+	Anim *  anim    = CreateAnim(UNITACTION_IDLE);
+	m_frame         = 0;
 
 	
 	if (anim == NULL) {
-		anim = GetAnim(UNITACTION_MOVE);
+		anim = CreateAnim(UNITACTION_MOVE);
 		Assert(anim != NULL);
 	}
 
-	Action		*idleAction;
 
 	if (anim && ((GetActionQueueNumItems() > 0) || NoIdleJustDelay))
 	{
@@ -523,7 +501,9 @@ void UnitActor::AddIdle(BOOL NoIdleJustDelay)
 	}
 
 
-	if(NoIdleJustDelay == TRUE) {
+	Action		*idleAction;
+
+	if (NoIdleJustDelay) {
 		idleAction = new Action(UNITACTION_IDLE, ACTIONEND_INTERRUPT, 
 								0, 
 								TRUE);
@@ -545,17 +525,12 @@ void UnitActor::AddIdle(BOOL NoIdleJustDelay)
 
 void UnitActor::ActionQueueUpIdle(BOOL NoIdleJustDelay)
 {
-	Anim		*anim;
-
-
-
-
-	anim = GetAnim(UNITACTION_IDLE);
+	Anim * anim = CreateAnim(UNITACTION_IDLE);
 
 	
 	if (anim == NULL) 
 	{
-		anim = GetAnim(UNITACTION_MOVE);
+		anim = CreateAnim(UNITACTION_MOVE);
 		Assert(anim != NULL);
 	}
 
@@ -1062,7 +1037,7 @@ void UnitActor::AddAction(Action *actionObj)
 	}
 }
 
-Anim *UnitActor::GetAnim(UNITACTION action)
+Anim *UnitActor::CreateAnim(UNITACTION action)
 {
 #ifndef _TEST
 	STOMPCHECK();
@@ -1092,11 +1067,9 @@ Anim *UnitActor::GetAnim(UNITACTION action)
 		}
 	}
 
-	Anim	*anim = new Anim();
-	*anim = *origAnim;
-	anim->SetSpecialCopyDelete(ANIMXEROX_COPY);
+	Anim * anim = new Anim(*origAnim);
 
-	if(anim->GetType() == ANIMTYPE_LOOPED)
+	if (anim->GetType() == ANIMTYPE_LOOPED)
 	{
 
 		anim->SetDelayEnd(m_holdingCurAnimDelayEnd[action]);
@@ -1115,7 +1088,7 @@ Anim *UnitActor::GetAnim(UNITACTION action)
 		anim->AdjustDelay(rand() % 2000);
 	}
 	
-	return anim;
+	return anim; // Has to be deleted outside.
 }
 
 #define k_FAKE_DEATH_FRAMES			15		
@@ -1247,7 +1220,7 @@ void UnitActor::DrawFortified(BOOL fogged)
 
 void UnitActor::DrawFortifying(BOOL fogged)
 {
-	Pixel16			*fortifiedImage = g_tiledMap->GetTileSet()->GetImprovementData(34);
+	Pixel16			*fortifiedImage = g_tiledMap->GetTileSet()->GetImprovementData(34); // Not refferenced
 
 	sint32	x = m_x + (sint32)(double)(k_ACTOR_CENTER_OFFSET_X * g_tiledMap->GetScale()), 
 			y = m_y + (sint32)(double)(k_ACTOR_CENTER_OFFSET_Y * g_tiledMap->GetScale());
@@ -1362,7 +1335,7 @@ void UnitActor::DrawCityWalls(BOOL fogged)
 
 			if (matchingSprite) 
 			{
-				cityImage = tileSet->GetImprovementData(matchingSprite->GetWalls());
+				cityImage = tileSet->GetImprovementData(static_cast<uint16>(matchingSprite->GetWalls()));
 			}
 			// else: keep default
 		}
@@ -1415,24 +1388,7 @@ void UnitActor::DrawCityWalls(BOOL fogged)
 void UnitActor::DrawForceField(BOOL fogged)
 {
 	sint32 which;
-#if defined(ACTIVISION_DEFAULT)
-	sint32 nudgeX, nudgeY;
 
-	if (g_theWorld->IsLand(m_pos)) {
-		nudgeX = (sint32)((double)((k_ACTOR_CENTER_OFFSET_X) - 48) * g_tiledMap->GetScale());
-		nudgeY = (sint32)((double)((k_ACTOR_CENTER_OFFSET_Y) - 48) * g_tiledMap->GetScale());
-		which = 154;
-	} else
-	if (g_theWorld->IsWater(m_pos)) {
-		nudgeX = (sint32)((double)((k_ACTOR_CENTER_OFFSET_X) - 48) * g_tiledMap->GetScale());
-		nudgeY = (sint32)((double)((k_ACTOR_CENTER_OFFSET_Y) - 48) * g_tiledMap->GetScale());
-		which = 155;
-	} else {
-		nudgeX = (sint32)((double)((k_ACTOR_CENTER_OFFSET_X) - 48) * g_tiledMap->GetScale());
-		nudgeY = (sint32)((double)((k_ACTOR_CENTER_OFFSET_Y) - 48) * g_tiledMap->GetScale());
-		which = 156;
-	}
-#else
 	sint32 const	nudgeX	= 
 		(sint32)((double)((k_ACTOR_CENTER_OFFSET_X) - 48) * g_tiledMap->GetScale());
 	sint32 const	nudgeY = 
@@ -1500,7 +1456,6 @@ void UnitActor::DrawForceField(BOOL fogged)
 		}
 	}
 	// else: keep default
-#endif
 
 	
 	Pixel16 *cityImage = g_tiledMap->GetTileSet()->GetImprovementData((uint16)which);
@@ -1670,7 +1625,7 @@ BOOL UnitActor::Draw(BOOL fogged)
 			DrawCityWalls(fogged);
 		}
 
-		uint16 oldTransparency;
+		uint16 oldTransparency = 0;
 		if (isCloaked) {
 			oldTransparency = m_transparency;
 			m_transparency = 8 + (rand() % 5);
@@ -2362,17 +2317,8 @@ UnitActor::ActionMove(Action *actionObj)
 	if (actionObj == NULL) 
 		return false;
 
-	Anim	 *anim		=	NULL;
-	sint32    visiblePlayer;
-	
-	
-	sint32	  speed				= g_theProfileDB->GetUnitSpeed();
-	sint32	  maxActionCounter	= k_MAX_UNIT_MOVEMENT_ITERATIONS - speed;
-
-	
 	if(GetNeedsToDie())
 	   return false;
-
 	
 	SetIsFortifying(FALSE);
 	SetIsFortified (FALSE);
@@ -2383,45 +2329,37 @@ UnitActor::ActionMove(Action *actionObj)
 	actionObj->SetSpecialDelayProcess(GetHoldingCurAnimSpecialDelayProcess(UNITACTION_MOVE));
 	actionObj->SetCurrentEndCondition(ACTIONEND_PATHEND);
 	
-	
-	
 	if (GetLoadType()!=LOADTYPE_FULL) 
 	 	FullLoad(UNITACTION_MOVE);
 
-	
-	anim = GetAnim(UNITACTION_MOVE);
-	
+	Anim * anim	= CreateAnim(UNITACTION_MOVE);
 	Assert(anim != NULL);
-   
-	
-	if (anim == NULL) 
+   	if (anim == NULL) 
    		return false;
 
-	
 	actionObj->SetAnim(anim);
-
 	actionObj->SetUnitsVisibility(GetUnitVisibility());
 	actionObj->SetUnitVisionRange(GetUnitVisionRange());
-
-	actionObj->SetMaxActionCounter(maxActionCounter);
+	actionObj->SetMaxActionCounter
+        (k_MAX_UNIT_MOVEMENT_ITERATIONS - g_theProfileDB->GetUnitSpeed());
 	actionObj->SetCurActionCounter(0);
 
 	AddAction(actionObj);
 
-	
-	
-	
-	if (GetIsTransported()==k_TRANSPORTREMOVEONLY) 
+	if (GetIsTransported() == k_TRANSPORTREMOVEONLY) 
+    {
 		TerminateLoopingSound(SOUNDTYPE_SFX);
+    }
 	else 
 	{
-		visiblePlayer = g_selected_item->GetVisiblePlayer();
+	    sint32 const visiblePlayer = g_selected_item->GetVisiblePlayer();
 
 		if ((visiblePlayer == GetPlayerNum()) ||
 			(GetUnitVisibility() & (1 << visiblePlayer))) 
+        {
 			AddLoopingSound(SOUNDTYPE_SFX,actionObj->GetSoundEffect());
+        }
    	}
-
 	
 	return true;
 }
@@ -2439,33 +2377,25 @@ UnitActor::ActionAttack(Action *actionObj,sint32 facing)
 	if(GetNeedsToDie()) 
 	   return false;
 
-	sint32    visiblePlayer = g_selected_item->GetVisiblePlayer();
-	
-	
 	actionObj->SetCurrentEndCondition(ACTIONEND_ANIMEND);
-	
 	
    	if(!TryAnimation(actionObj,UNITACTION_ATTACK))
 	   if(!TryAnimation(actionObj,UNITACTION_IDLE))
 	 	 return false;
 	
 	actionObj->SetActionType(UNITACTION_ATTACK);
-
-	
 	actionObj->SetFacing(facing);
-
-	
 	actionObj->SetUnitsVisibility(GetUnitVisibility());
 	actionObj->SetUnitVisionRange(GetUnitVisionRange());
 
-	
 	AddAction(actionObj);
 
 	
 	TerminateLoopingSound(SOUNDTYPE_SFX);
 
+	sint32 const    visiblePlayer = g_selected_item->GetVisiblePlayer();
 	
-	  if ((visiblePlayer == GetPlayerNum()) || (GetUnitVisibility() & (1 << visiblePlayer))) 
+    if ((visiblePlayer == GetPlayerNum()) || (GetUnitVisibility() & (1 << visiblePlayer))) 
 		  AddSound(SOUNDTYPE_SFX,actionObj->GetSoundEffect());
 
 	
@@ -2484,9 +2414,6 @@ UnitActor::ActionSpecialAttack(Action *actionObj,sint32 facing)
 	if(GetNeedsToDie()) 
 	   return false;
 
-	sint32    visiblePlayer = g_selected_item->GetVisiblePlayer();
-	
-	
 	actionObj->SetCurrentEndCondition(ACTIONEND_ANIMEND);
 
 	
@@ -2497,25 +2424,19 @@ UnitActor::ActionSpecialAttack(Action *actionObj,sint32 facing)
 
 	
 	actionObj->SetActionType(UNITACTION_ATTACK);
-
-	
 	actionObj->SetFacing(facing);
-
-	
 	actionObj->SetUnitsVisibility(GetUnitVisibility());
 	actionObj->SetUnitVisionRange(GetUnitVisionRange());
-
 	
 	AddAction(actionObj);
-
 	
 	TerminateLoopingSound(SOUNDTYPE_SFX);
 
+	sint32 const    visiblePlayer = g_selected_item->GetVisiblePlayer();
 	
 	  if ((visiblePlayer == GetPlayerNum()) || (GetUnitVisibility() & (1 << visiblePlayer))) 
 		  AddSound(SOUNDTYPE_SFX,actionObj->GetSoundEffect());
 
-	
 	return true;
 }
 
@@ -2523,16 +2444,15 @@ UnitActor::ActionSpecialAttack(Action *actionObj,sint32 facing)
 bool 
 UnitActor::TryAnimation(Action *actionObj,UNITACTION action)
 {
-	
 	FullLoad(action);
 
-	
-	if(GetAnim(action)!=NULL)
+	Anim * theAnim = CreateAnim(action); // theAnim must be deleted
+	if (theAnim)
 	{ 
-	  actionObj->SetAnimPos(GetHoldingCurAnimPos(action));
-	  actionObj->SetSpecialDelayProcess(GetHoldingCurAnimSpecialDelayProcess(action));
-	  actionObj->SetAnim(GetAnim(action));
-	  return true;
+        actionObj->SetAnimPos(GetHoldingCurAnimPos(action));
+        actionObj->SetSpecialDelayProcess(GetHoldingCurAnimSpecialDelayProcess(action));
+        actionObj->SetAnim(theAnim);
+        return true;
 	}
 	
 	return false;
@@ -2544,7 +2464,7 @@ void UnitActor::DumpFullLoad(void)
 	if (!m_unitSpriteGroup) return;
 	if (m_loadType != LOADTYPE_FULL) return;
 
-	BOOL purged = g_unitSpriteGroupList->ReleaseSprite(m_spriteID, LOADTYPE_FULL);
+	bool purged = g_unitSpriteGroupList->ReleaseSprite(m_spriteID, LOADTYPE_FULL);
 
 	if (purged) {
 		m_unitSpriteGroup = NULL;

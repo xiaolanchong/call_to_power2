@@ -1,14 +1,32 @@
-
-
-
-
-
-
-
-
-
-
-
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Good actor
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// _ACTOR_DRAW_OPTIMIZATION
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - None
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
 
@@ -105,7 +123,7 @@ void GoodActor::Initialize(sint32 index, const MapPoint &pos)
 }
 
 void GoodActor::FullLoad(void)
-{
+{ // Doesn't seem to do much
 	if (!m_goodSpriteGroup) return;
 	if (m_loadType == LOADTYPE_FULL) return;
 
@@ -155,18 +173,17 @@ void GoodActor::PositionActor(MapPoint &pos)
 
 void GoodActor::AddIdle(void)
 {
-	
 	if (m_curAction) return;
 
 	m_curAction = new Action(GOODACTION_IDLE, ACTIONEND_ANIMEND);
 
-	Anim	*anim = GetAnim(GOODACTION_IDLE);
-	if (!anim) return;
-
-	m_curAction->SetAnim(anim);
-	m_curAction->SetDelay(0);
-
-	m_curGoodAction = GOODACTION_IDLE;
+	Anim * anim = CreateAnim(GOODACTION_IDLE);
+	if (anim) 
+    {
+	    m_curAction->SetAnim(anim);
+	    m_curAction->SetDelay(0);
+	    m_curGoodAction = GOODACTION_IDLE;
+    }
 }
 
 void GoodActor::Process(void)
@@ -283,7 +300,7 @@ void GoodActor::DumpAllActions(void)
 }
 
 
-Anim *GoodActor::GetAnim(GOODACTION action)
+Anim *GoodActor::CreateAnim(GOODACTION action)
 {
 	Assert(m_goodSpriteGroup != NULL);
 	if (m_goodSpriteGroup == NULL) return NULL;
@@ -298,12 +315,7 @@ Anim *GoodActor::GetAnim(GOODACTION action)
 		return NULL;
 	}
 
-	Anim	*anim = new Anim();
-	*anim = *origAnim;
-	anim->SetSpecialCopyDelete(ANIMXEROX_COPY);
-
-	return anim;
-
+	return new Anim(*origAnim);
 }
 
 void GoodActor::DrawSelectionBrackets(void)

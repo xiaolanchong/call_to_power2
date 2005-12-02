@@ -1,18 +1,35 @@
-
-
-
-
-
-
-
-
-
-
-
- 
-
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Sprite
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// - None
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - Added separate counters in Sprite-derived classes to prevent crashes.
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
+#include "Sprite.h"
 
 #include "pixelutils.h"
 #include "tiffutils.h"
@@ -23,7 +40,6 @@
 #include "aui.h"
 #include "aui_surface.h"
 
-#include "Sprite.h"
 #include "SpriteFile.h"
 #include "Anim.h"
 #include "screenmanager.h"
@@ -68,29 +84,14 @@ Sprite::Sprite()
 
 Sprite::~Sprite()
 {
-	if (m_frames != NULL) {
-		for (sint32 i=0; i<m_numFrames; i++) {
-			if (m_frames[i] != NULL) {
-				delete[] (m_frames[i]);
-			}
-			if (m_miniframes[i] != NULL) {
-				delete[] (m_miniframes[i]);
-			}
-		}
-
-		delete[] m_frames;
-		delete[] m_miniframes;
+	for (size_t i = 0; i < m_numFrames; ++i) 
+    {
+		delete [] (m_frames[i]);
+		delete [] (m_miniframes[i]);
 	}
 
-
-
-
-
-
-
-
-
-
+	delete [] m_frames;
+	delete [] m_miniframes;
 }
 
 
@@ -186,7 +187,7 @@ void Sprite::ImportTGA(uint16 index, char **imageFiles,Pixel32 **imageData)
 
 	if (bpp!=4)
 	{
-		printf("TGA Sprite File not 32-bits\n",imageFiles[index]);
+		printf("TGA Sprite File not 32-bits(%s)\n",imageFiles[index]);
 		*imageData=NULL;
 		fcloseall();
 		exit(0);
@@ -216,7 +217,6 @@ void Sprite::Import(uint16 nframes, char **imageFiles, char **shadowFiles)
 	if (m_frames != NULL) 
 	{
 		free(m_frames);
-		m_frames = NULL;
 	}
 
 	
@@ -230,7 +230,6 @@ void Sprite::Import(uint16 nframes, char **imageFiles, char **shadowFiles)
 	if (m_miniframes != NULL) 
 	{
 		free(m_miniframes);
-		m_miniframes = NULL;
 	}
 
 	
@@ -830,20 +829,13 @@ sint32 Sprite::ParseFromTokens(Token *theToken)
 
 
 
-void Sprite::AllocateFrameArrays(void)
+void Sprite::AllocateFrameArrays(size_t count)
 {
+    Assert(!m_frames && !m_miniframes);
 
-	m_frames = new Pixel16*[GetNumFrames()];
-
-	m_miniframes = new Pixel16*[GetNumFrames()];
-}
-
-
-
-void Sprite::AllocateFrameArraysBasic(void)
-{
-	m_frames = new Pixel16*[1];
-	m_miniframes = new Pixel16*[1];
+	m_frames        = new Pixel16*[count];
+	m_miniframes    = new Pixel16*[count];
+    m_numFrames     = count;
 }
 
 
@@ -900,7 +892,7 @@ inline Pixel16 Sprite::average(Pixel16 pixel1, Pixel16 pixel2, Pixel16 pixel3, P
 		g0 = (g1 + g2 + g3 + g4) >> 2;
 		b0 = (b1 + b2 + b3 + b4) >> 2;
 
-		return (r0 << 11) | (g0 << 5) | b0;
+		return static_cast<Pixel16>((r0 << 11) | (g0 << 5) | b0);
 	} else {
 		r1 = (pixel1 & 0x7C00) >> 10;
 		g1 = (pixel1 & 0x03E0) >> 5;
@@ -922,7 +914,7 @@ inline Pixel16 Sprite::average(Pixel16 pixel1, Pixel16 pixel2, Pixel16 pixel3, P
 		g0 = (g1 + g2 + g3 + g4) >> 2;
 		b0 = (b1 + b2 + b3 + b4) >> 2;
 
-		return (r0 << 10) | (g0 << 5) | b0;
+		return static_cast<Pixel16>((r0 << 10) | (g0 << 5) | b0);
 	}
 }
 
@@ -948,7 +940,7 @@ inline Pixel16 Sprite::average(Pixel16 pixel1, Pixel16 pixel2)
 		g0 = (g1 + g2) >> 1;
 		b0 = (b1 + b2) >> 1;
 
-		return (r0 << 11) | (g0 << 5) | b0;
+		return static_cast<Pixel16>((r0 << 11) | (g0 << 5) | b0);
 	} else {
 		r1 = (pixel1 & 0x7C00) >> 10;
 		g1 = (pixel1 & 0x03E0) >> 5;
@@ -962,7 +954,7 @@ inline Pixel16 Sprite::average(Pixel16 pixel1, Pixel16 pixel2)
 		g0 = (g1 + g2) >> 1;
 		b0 = (b1 + b2) >> 1;
 
-		return (r0 << 10) | (g0 << 5) | b0;
+		return static_cast<Pixel16>((r0 << 10) | (g0 << 5) | b0);
 	}
 }
 

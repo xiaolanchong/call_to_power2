@@ -2,7 +2,7 @@
 //
 // Project      : Call To Power 2
 // File type    : C++ header
-// Description  : User interface general resource handling
+// Description  : Activision User Interface general resource handling
 // Id           : $Id$
 //
 //----------------------------------------------------------------------------
@@ -17,7 +17,9 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// WIN32
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
@@ -27,6 +29,7 @@
 // - Crash preventions
 // - moved aui_UI::CalculateHash -> aui_Base::CalculateHash
 // - fixed some filesystem portability issues
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -68,8 +71,8 @@ template<class TT>
 struct aui_ResourceElement
 {
 	aui_ResourceElement(
-		MBCHAR *newName,
-		MBCHAR *fullPath );
+		const MBCHAR *newName,
+		const MBCHAR *fullPath );
 	virtual ~aui_ResourceElement();
 
 	TT		*resource;		
@@ -90,15 +93,15 @@ public:
 	virtual ~aui_Resource();
 
 	
-	T			*Load( MBCHAR *name, C3DIR dir = C3DIR_DIRECT, uint32 size = 0);
+	T			*Load( const MBCHAR *name, C3DIR dir = C3DIR_DIRECT, uint32 size = 0);
 
 	AUI_ERRCODE	Unload( T *resource );
-	AUI_ERRCODE	Unload( MBCHAR *name );
+	AUI_ERRCODE	Unload( const MBCHAR *name );
 
-	AUI_ERRCODE	AddSearchPath( MBCHAR *path );
-	AUI_ERRCODE	RemoveSearchPath( MBCHAR *path );
+	AUI_ERRCODE	AddSearchPath( const MBCHAR *path );
+	AUI_ERRCODE	RemoveSearchPath( const MBCHAR *path );
 
-	BOOL FindFile( MBCHAR *fullPath, MBCHAR *name );
+	BOOL FindFile( MBCHAR *fullPath, const MBCHAR *name );
 
 protected:
 	tech_WLList<aui_ResourceElement<T> *>	*m_resourceList;
@@ -120,8 +123,8 @@ protected:
 
 template<class TT>
 aui_ResourceElement<TT>::aui_ResourceElement(
-	MBCHAR *newName,
-	MBCHAR *fullPath )
+	const MBCHAR *newName,
+	const MBCHAR *fullPath )
 :	resource(NULL),
 	name((newName && fullPath) ? new MBCHAR[strlen(newName) + 1] : NULL),
 	hash(aui_Base::CalculateHash(newName)),
@@ -134,7 +137,7 @@ aui_ResourceElement<TT>::aui_ResourceElement(
 	// Temporary patch: modern code would use std::string and initialiser
 	strcpy(name, newName);
 	
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 	resource = new TT( &errcode, fullPath );
 	Assert( AUI_NEWOK(resource,errcode) );
 	if ( !AUI_NEWOK(resource,errcode) ) return;
@@ -224,7 +227,7 @@ aui_Resource<T>::~aui_Resource()
 
 
 template<class T>
-AUI_ERRCODE aui_Resource<T>::AddSearchPath( MBCHAR *path )
+AUI_ERRCODE aui_Resource<T>::AddSearchPath( const MBCHAR *path )
 {
 	Assert( path != NULL );
 	if ( !path ) return AUI_ERRCODE_INVALIDPARAM;
@@ -239,15 +242,21 @@ AUI_ERRCODE aui_Resource<T>::AddSearchPath( MBCHAR *path )
 
 	
 	
-	MBCHAR *last = path + len - 1;
-	Assert( *last != '\\' );
-	if ( *last == '\\' ) *last = '\0';
+	const MBCHAR *last = path + len - 1;
+	Assert( *last != FILE_SEPC );
+	while ( *last == FILE_SEPC ) {
+		len--;
+	}
+	if (0 == len) {
+		len++;
+	}
 
 	MBCHAR *newPath = new MBCHAR[ len + 1 ];
 	Assert( newPath != NULL );
 	if ( !newPath ) return AUI_ERRCODE_MEMALLOCFAILED;
 
-	strcpy( newPath, path );
+	strncpy( newPath, path, len);
+	newPath[len] = '\0';
 
 	m_pathList->AddTail( newPath );
 
@@ -256,7 +265,7 @@ AUI_ERRCODE aui_Resource<T>::AddSearchPath( MBCHAR *path )
 
 
 template<class T>
-AUI_ERRCODE aui_Resource<T>::RemoveSearchPath( MBCHAR *path )
+AUI_ERRCODE aui_Resource<T>::RemoveSearchPath( const MBCHAR *path )
 {
 	
 
@@ -279,12 +288,12 @@ AUI_ERRCODE aui_Resource<T>::RemoveSearchPath( MBCHAR *path )
 
 
 template<class T>
-T *aui_Resource<T>::Load( MBCHAR *resName, C3DIR dir, uint32 size)
+T *aui_Resource<T>::Load( const MBCHAR *resName, C3DIR dir, uint32 size)
 {
 	Assert( resName != NULL );
 	if ( !resName ) return NULL;
 
-	MBCHAR *name;
+	const MBCHAR *name;
 	MBCHAR tempName[MAX_PATH + 1];
 
 
@@ -379,7 +388,7 @@ T *aui_Resource<T>::Load( MBCHAR *resName, C3DIR dir, uint32 size)
 
 
 template<class T>
-BOOL aui_Resource<T>::FindFile( MBCHAR *fullPath, MBCHAR *name )
+BOOL aui_Resource<T>::FindFile( MBCHAR *fullPath, const MBCHAR *name )
 {
 	if ( !strchr( name, ':' ) && strncmp( name, FILE_SEP FILE_SEP, 2 ) )
 	{
@@ -436,7 +445,7 @@ AUI_ERRCODE aui_Resource<T>::Unload( T *resource )
 
 
 template<class T>
-AUI_ERRCODE aui_Resource<T>::Unload( MBCHAR *name )
+AUI_ERRCODE aui_Resource<T>::Unload( const MBCHAR *name )
 {
 	uint32 hash = aui_Base::CalculateHash( name );
 
@@ -466,3 +475,4 @@ AUI_ERRCODE aui_Resource<T>::Unload( MBCHAR *name )
 
 
 #endif 
+

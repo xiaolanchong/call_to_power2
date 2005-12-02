@@ -1,12 +1,34 @@
-
-
-
-
-
-
-
-
-
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Activision User Interface region
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// _DEBUG
+// STATUS_BAR_MOUSE_OVER_LDL_DEBUG_INFORMATION
+// - Generate debug version when set.
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
 #include "aui_ui.h"
@@ -40,31 +62,33 @@ uint32 aui_Region::m_regionClassId = aui_UniqueId();
 
 
 
-aui_Region::aui_Region(
-	AUI_ERRCODE *retval,
-	uint32 id,
-	MBCHAR *ldlBlock )
+aui_Region::aui_Region
+(
+	AUI_ERRCODE *   retval,
+	uint32          id,
+	MBCHAR *        ldlBlock 
+)
+:
+    aui_Base()
 {
-	*retval = InitCommonLdl( id, ldlBlock );
-	Assert( AUI_SUCCESS(*retval) );
-	if ( !AUI_SUCCESS(*retval) ) return;
+	*retval = InitCommonLdl(id, ldlBlock);
 }
 
 
 
-aui_Region::aui_Region(
-	AUI_ERRCODE *retval,
-	uint32 id,
-	sint32 x,
-	sint32 y,
-	sint32 width,
-	sint32 height )
-	:
+aui_Region::aui_Region
+(
+	AUI_ERRCODE *   retval,
+	uint32          id,
+	sint32          x,
+	sint32          y,
+	sint32          width,
+	sint32          height 
+)
+:
 	aui_Base()
 {
-	*retval = InitCommon( id, x, y, width, height );
-	Assert( AUI_SUCCESS(*retval) );
-	if ( !AUI_SUCCESS(*retval) ) return;
+	*retval = InitCommon(id, x, y, width, height);
 }
 
 
@@ -204,7 +228,7 @@ AUI_ERRCODE aui_Region::InitCommonLdl( uint32 id, MBCHAR *ldlBlock )
 	MBCHAR *anchor;
 
 	
-	if ( anchor = block->GetString( k_AUI_LDL_HANCHOR ) )
+	if ((anchor = block->GetString( k_AUI_LDL_HANCHOR )))
 	{
 		if ( stricmp( anchor, "right" ) == 0 ) {
 			m_dim->AnchorRight();
@@ -219,7 +243,7 @@ AUI_ERRCODE aui_Region::InitCommonLdl( uint32 id, MBCHAR *ldlBlock )
 		m_dim->AnchorLeft();
 
 	
-	if ( anchor = block->GetString( k_AUI_LDL_VANCHOR ) )
+	if ((anchor = block->GetString( k_AUI_LDL_VANCHOR )))
 	{
 		if ( stricmp( anchor, "bottom" ) == 0 )
 			m_dim->AnchorBottom();
@@ -301,7 +325,7 @@ aui_Region::~aui_Region()
 	delete [] m_ldlBlock;
 
 	if (g_attractWindow && CanAttract()) 
-    {
+	{
 		g_attractWindow->RemoveRegion(this);
 	}
 }
@@ -903,7 +927,7 @@ aui_DragDropWindow *aui_Region::CreateDragDropWindow( aui_Control *dragDropItem 
 
 	
 	
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 	aui_DragDropWindow *ddw = new aui_DragDropWindow(
 		&errcode,
 		dragDropItem,	

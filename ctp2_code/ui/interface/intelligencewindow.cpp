@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Intelligence window (diplomacy subwindow)
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,12 +17,16 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// - None
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
 // - Update the state of the embargo and war buttons after confirmation.
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+// - Moved cleanup of statics into the the cleanup method. (Sep 14th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -38,7 +43,7 @@
 #include "SelItem.h"
 #include "aui_blitter.h"
 #include "pixelutils.h"
-#include "colorset.h"
+#include "colorset.h"               // g_colorSet
 #include "aui_stringtable.h"
 #include "aui_tipwindow.h"
 #include "ctp2_hypertextbox.h"
@@ -64,31 +69,31 @@
 #include "network.h"
 #include "net_action.h"
 
-static IntelligenceWindow *s_intelligenceWindow = NULL;
-static MBCHAR *s_intelligenceBlock = "IntelligenceWindow";
-static MBCHAR *s_intelligenceAdviceBlock = "IntelligenceAdvice";
-ctp2_ListBox *IntelligenceWindow::sm_list = NULL;
+extern C3UI                 *g_c3ui;
 
-extern C3UI *g_c3ui;
-
-extern ColorSet *g_colorSet;
-
-aui_StringTable *IntelligenceWindow::sm_strengthImages = NULL;
-aui_StringTable *IntelligenceWindow::sm_embassyImages = NULL;
-
-ctp2_Window *IntelligenceWindow::sm_showTreatyDetail = NULL;
+static IntelligenceWindow   *s_intelligenceWindow = NULL;
+static MBCHAR               *s_intelligenceBlock = "IntelligenceWindow";
+static MBCHAR               *s_intelligenceAdviceBlock = "IntelligenceAdvice";
+ctp2_ListBox                *IntelligenceWindow::sm_list = NULL;
 
 
-#define k_INT_FLAG_COL		0
-#define k_INT_NATION_COL	1		
-#define k_INT_REGARD_COL	2		
-#define k_INT_STRENGTH_COL	3		
-#define k_INT_EMBASSY_COL	4		
-#define k_INT_TREATIES_COL	5		
 
-#define k_WEAK_STRENGTH -50
-#define k_EQUAL_STRENGTH 0
-#define k_STRONG_STRENGTH 50
+aui_StringTable             *IntelligenceWindow::sm_strengthImages = NULL;
+aui_StringTable             *IntelligenceWindow::sm_embassyImages = NULL;
+
+ctp2_Window                 *IntelligenceWindow::sm_showTreatyDetail = NULL;
+
+
+#define k_INT_FLAG_COL      0
+#define k_INT_NATION_COL    1
+#define k_INT_REGARD_COL    2
+#define k_INT_STRENGTH_COL  3
+#define k_INT_EMBASSY_COL   4
+#define k_INT_TREATIES_COL  5
+
+#define k_WEAK_STRENGTH   -50
+#define k_EQUAL_STRENGTH    0
+#define k_STRONG_STRENGTH  50
 
 IntelligenceWindow::IntelligenceWindow(AUI_ERRCODE *err)
 {
@@ -131,15 +136,6 @@ IntelligenceWindow::~IntelligenceWindow()
 	aui_Ldl::DeleteHierarchyFromRoot(s_intelligenceAdviceBlock);
 	m_adviceWindow = NULL;
 
-	if(sm_strengthImages) {
-		delete sm_strengthImages;
-		sm_strengthImages = NULL;
-	}
-
-	if(sm_embassyImages) {
-		delete sm_embassyImages;
-		sm_embassyImages = NULL;
-	}
 }
 
 AUI_ERRCODE IntelligenceWindow::Initialize()
@@ -148,7 +144,7 @@ AUI_ERRCODE IntelligenceWindow::Initialize()
 		return AUI_ERRCODE_OK;
 	}
 
-	AUI_ERRCODE err;
+	AUI_ERRCODE err = AUI_ERRCODE_OK;
 	s_intelligenceWindow = new IntelligenceWindow(&err);
 	Assert(err == AUI_ERRCODE_OK);
 
@@ -171,6 +167,16 @@ AUI_ERRCODE IntelligenceWindow::Cleanup()
 
 		aui_Ldl::DeleteHierarchyFromRoot("IntelTreatyDetail");
 		sm_showTreatyDetail = NULL;
+	}
+
+	if(sm_strengthImages) {
+		delete sm_strengthImages;
+		sm_strengthImages = NULL;
+	}
+
+	if(sm_embassyImages) {
+		delete sm_embassyImages;
+		sm_embassyImages = NULL;
 	}
 
 	return AUI_ERRCODE_OK;

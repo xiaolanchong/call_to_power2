@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Handling diplomacy proposals between Human and other players.
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,7 +17,9 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// - None
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
@@ -25,6 +28,8 @@
 // - Diplomatic proposals/responses sent from UI get the highest priority possible
 //   so that the AI won't override them: DipWizard::SendCallback
 // - Repaired crashes when the emissary photo is missing.
+// - Added female leader images. (Aug 20th 2005 Martin Gühmann)
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -79,64 +84,71 @@
 #include "UnitData.h"
 
 #include "primitives.h"
-#include "colorset.h"
+#include "colorset.h"                   // g_colorSet
 
-extern ColorSet *g_colorSet;
+extern C3UI       *g_c3ui;
 
-static DipWizard *s_dipWizard;
-static MBCHAR *s_dipWizardBlock = "DipWizard";
+static DipWizard  *s_dipWizard;
+static MBCHAR     *s_dipWizardBlock = "DipWizard";
 
-extern C3UI *g_c3ui;
 
-ctp2_Static *DipWizard::m_stages[DIP_WIZ_STAGE_MAX];
-ctp2_Button *DipWizard::m_toneButtons[DIPLOMATIC_TONE_MAX];
-ctp2_Button *DipWizard::m_backButton = NULL, 
-	*DipWizard::m_nextButton = NULL,
-	*DipWizard::m_sendButton = NULL,
-	*DipWizard::m_cancelButton = NULL;
-ctp2_Button *DipWizard::m_counterOrThreatenButton = NULL;
-ctp2_Button *DipWizard::m_rejectButton = NULL, *DipWizard::m_acceptButton = NULL;
-ctp2_Button *DipWizard::m_intelButton = NULL;
+ctp2_Static       *DipWizard::m_stages[DIP_WIZ_STAGE_MAX];
+ctp2_Button       *DipWizard::m_toneButtons[DIPLOMATIC_TONE_MAX];
+ctp2_Button       *DipWizard::m_backButton = NULL, 
+                  *DipWizard::m_nextButton = NULL,
+                  *DipWizard::m_sendButton = NULL,
+                  *DipWizard::m_cancelButton = NULL;
+ctp2_Button       *DipWizard::m_counterOrThreatenButton = NULL;
+ctp2_Button       *DipWizard::m_rejectButton = NULL,
+                  *DipWizard::m_acceptButton = NULL;
+ctp2_Button       *DipWizard::m_intelButton = NULL;
 
-ctp2_Static *DipWizard::m_createButtons = NULL,
-	*DipWizard::m_viewButtons = NULL,
-	
-	*DipWizard::m_parchment = NULL,
-	*DipWizard::m_responseDiplomat;
+ctp2_Static       *DipWizard::m_createButtons = NULL,
+                  *DipWizard::m_viewButtons = NULL,
+
+                  *DipWizard::m_parchment = NULL,
+                  *DipWizard::m_responseDiplomat;
 
 //Added by Martin Gühmann to display the emissary photo of recipient
-ctp2_Static	*DipWizard::m_emissary_photo = NULL;
+ctp2_Static       *DipWizard::m_emissary_photo = NULL;
 
-ctp2_DropDown *DipWizard::m_nations = NULL;
+ctp2_DropDown     *DipWizard::m_nations = NULL;
 
-ctp2_ListBox *DipWizard::m_propList[DIP_WIZ_PROP_TAB_MAX];
-ctp2_ListBox *DipWizard::m_exchList[DIP_WIZ_PROP_TAB_MAX];
-ctp2_ListBox *DipWizard::m_threatList;
-ctp2_Menu *DipWizard::m_curMenu = NULL, *DipWizard::m_threatMenu = NULL;
-ctp2_Window *DipWizard::m_goldRequestWindow = NULL;
-ctp2_Window *DipWizard::m_pollutionRequestWindow = NULL;
-ctp2_Window *DipWizard::m_percentRequestWindow = NULL;
-bool DipWizard::m_proposalDataPending = false;
-bool DipWizard::m_threatDataPending = false;
+ctp2_ListBox      *DipWizard::m_propList[DIP_WIZ_PROP_TAB_MAX];
+ctp2_ListBox      *DipWizard::m_exchList[DIP_WIZ_PROP_TAB_MAX];
+ctp2_ListBox      *DipWizard::m_threatList;
+ctp2_Menu         *DipWizard::m_curMenu = NULL,
+                  *DipWizard::m_threatMenu = NULL;
+ctp2_Window       *DipWizard::m_goldRequestWindow = NULL;
+ctp2_Window       *DipWizard::m_pollutionRequestWindow = NULL;
+ctp2_Window       *DipWizard::m_percentRequestWindow = NULL;
+bool              DipWizard::m_proposalDataPending = false;
+bool              DipWizard::m_threatDataPending = false;
 
-sint32 DipWizard::m_recipient = -1;
-sint32 DipWizard::m_tone = -1;
-sint32 DipWizard::m_proposal = -1;
-sint32 DipWizard::m_exchange = -1;
-sint32 DipWizard::m_menuProposal = -1;
-sint32 DipWizard::m_menuExchange = -1;
-sint32 DipWizard::m_threat = -1;
-sint32 DipWizard::m_menuThreat = -1;
-DiplomacyArg DipWizard::m_proposalArg, DipWizard::m_exchangeArg, DipWizard::m_threatArg;
+sint32            DipWizard::m_recipient = -1;
+sint32            DipWizard::m_tone = -1;
+sint32            DipWizard::m_proposal = -1;
+sint32            DipWizard::m_exchange = -1;
+sint32            DipWizard::m_menuProposal = -1;
+sint32            DipWizard::m_menuExchange = -1;
+sint32            DipWizard::m_threat = -1;
+sint32            DipWizard::m_menuThreat = -1;
+DiplomacyArg      DipWizard::m_proposalArg,
+                  DipWizard::m_exchangeArg,
+                  DipWizard::m_threatArg;
 
-sint32 DipWizard::m_viewTone = -1,
-	DipWizard::m_viewRecipient = -1, DipWizard::m_viewSender = -1,
-	DipWizard::m_viewProposal = - 1, DipWizard::m_viewExchange = -1,
-	DipWizard::m_viewThreat = -1, DipWizard::m_viewResponseType = -1;
-DiplomacyArg DipWizard::m_viewProposalArg, DipWizard::m_viewExchangeArg;
-DiplomacyArg DipWizard::m_viewThreatArg;
+sint32            DipWizard::m_viewTone = -1,
+                  DipWizard::m_viewRecipient = -1,
+                  DipWizard::m_viewSender = -1,
+                  DipWizard::m_viewProposal = - 1,
+                  DipWizard::m_viewExchange = -1,
+                  DipWizard::m_viewThreat = -1,
+                  DipWizard::m_viewResponseType = -1;
+DiplomacyArg      DipWizard::m_viewProposalArg,
+                  DipWizard::m_viewExchangeArg;
+DiplomacyArg      DipWizard::m_viewThreatArg;
 DIP_WIZ_VIEW_TYPE DipWizard::m_viewType;
-bool DipWizard::m_sendCounter;
+bool              DipWizard::m_sendCounter;
 
 
 DipWizard::DipWizard(AUI_ERRCODE *err)
@@ -316,7 +328,7 @@ AUI_ERRCODE DipWizard::Initialize()
 		return AUI_ERRCODE_OK;
 
 	
-	AUI_ERRCODE err;
+	AUI_ERRCODE err = AUI_ERRCODE_OK;
 	s_dipWizard = new DipWizard(&err);
 
 	Assert(err == AUI_ERRCODE_OK);
@@ -1077,7 +1089,7 @@ void DipWizard::UpdateExchangeStage()
 	if(m_proposal >= 0)
 		rec = g_theDiplomacyProposalDB->Get(m_proposal);
 
-	ctp2_TabButton *tabButton;
+	ctp2_TabButton *tabButton = NULL;
 	ctp2_Tab *tab[3];
 	bool changeTab = false;
 	sint32 shown = -1;
@@ -1664,7 +1676,7 @@ void DipWizard::SendCallback(aui_Control *control, uint32 action, uint32 data, v
 		Response response;
 		response.senderId = m_recipient;
 		response.receiverId = g_selected_item->GetVisiblePlayer();
-        response.priority = 9999;
+		response.priority = 9999;
 		FillInProposalData(response.counter, true);
 		response.type = RESPONSE_COUNTER;
 		response.counter.tone = (DIPLOMATIC_TONE)m_tone;
@@ -1685,7 +1697,7 @@ void DipWizard::SendCallback(aui_Control *control, uint32 action, uint32 data, v
 		
 		prop.senderId = g_selected_item->GetVisiblePlayer();
 		prop.receiverId = m_recipient;
-        prop.priority=9999;
+		prop.priority=9999;
 		FillInProposalData(prop.detail);
 
 		
@@ -1704,7 +1716,7 @@ void DipWizard::SendCallback(aui_Control *control, uint32 action, uint32 data, v
 		resp.receiverId = m_viewRecipient;
 		resp.threat.type = diplomacyutil_GetThreatType(m_threat);
 		resp.threat.arg = m_threatArg;
-        resp.priority=9999;
+		resp.priority=9999;
 		if(g_network.IsActive()) {
 			SetStage(DIP_WIZ_STAGE_RECIPIENT);
 		}
@@ -2388,13 +2400,13 @@ void DipWizard::RequestPollutionValue(sint32 player)
 	}
 	ctp2_Spinner *spinner = (ctp2_Spinner *)aui_Ldl::GetObject("DipPollutionRequest.Spinner");
 	
-	spinner->SetMaximum((g_player[player]->GetPollutionLevel() * 0.95), 0);
+	spinner->SetMaximum(static_cast<sint32>(g_player[player]->GetPollutionLevel() * 0.95), 0);
 	
-	spinner->SetMinimum((g_player[player]->GetPollutionLevel() * 0.25), 0);
+	spinner->SetMinimum(static_cast<sint32>(g_player[player]->GetPollutionLevel() * 0.25), 0);
 	
-	spinner->SetPage((g_player[player]->GetPollutionLevel() * 0.20), 0);
+	spinner->SetPage(static_cast<sint32>(g_player[player]->GetPollutionLevel() * 0.20), 0);
 	
-	spinner->SetIncrement((g_player[player]->GetPollutionLevel() * 0.10), 0);
+	spinner->SetIncrement(static_cast<sint32>(g_player[player]->GetPollutionLevel() * 0.10), 0);
 
 	g_c3ui->AddWindow(m_pollutionRequestWindow);
 	m_proposalDataPending = true;
@@ -2628,8 +2640,13 @@ void DipWizard::DisplayDiplomat(sint32 player)
 		MBCHAR const *	fileName	= NULL;
 		if ((player >= 0) && (player < k_MAX_PLAYERS) && g_player[player])
 		{
-			StringId const strID = 
-				g_player[player]->GetCivilisation()->GetDBRec()->GetEmissaryPhoto();
+			StringId strID;
+			if(g_player[player]->GetCivilisation()->GetGender() == GENDER_MALE){
+				strID = g_player[player]->GetCivilisation()->GetDBRec()->GetEmissaryPhotoMale();
+			}
+			else{
+				strID = g_player[player]->GetCivilisation()->GetDBRec()->GetEmissaryPhotoFemale();
+			}
 			fileName = g_theStringDB->GetNameStr(strID);
 		}
 
@@ -2672,7 +2689,7 @@ void DipWizard::CheckIntelligence(aui_Control *control, uint32 action, uint32 da
 {
 	if(action != AUI_BUTTON_ACTION_EXECUTE) return;
 
-	sint32 pl;
+	sint32 pl = -1;
 
 	switch(GetStage()) {
 		case DIP_WIZ_STAGE_RECIPIENT:

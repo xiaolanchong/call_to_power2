@@ -1,24 +1,50 @@
-/*
-	fixed for japanese by t.s. 2003.12
-
-	fix
-		AUI_ERRCODE aui_BitmapFont::RenderLine
-		aui_BitmapFont::GlyphInfo *aui_BitmapFont::GetGlyphInfo( MBCHAR c )
-		AUI_ERRCODE aui_BitmapFont::DrawString
-		BOOL aui_BitmapFont::TruncateString( MBCHAR *name, sint32 width )
-
-	add
-		aui_BitmapFont::GlyphInfo *aui_BitmapFont::GetGlyphInfo2( MBCHAR *c )
-*/
-
-
-
-
-
-
-
-
-
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Activision User Interface bitmap font
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// _JAPANESE
+// - Add provisions for handling SJIS characters.
+//
+// _MBCS
+// _UNICODE
+//
+// _DEBUG
+// - Generate debug version when set.
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+//  fixed for japanese by t.s. 2003.12
+//
+//  fix
+//      AUI_ERRCODE aui_BitmapFont::RenderLine
+//      aui_BitmapFont::GlyphInfo *aui_BitmapFont::GetGlyphInfo( MBCHAR c )
+//      AUI_ERRCODE aui_BitmapFont::DrawString
+//      BOOL aui_BitmapFont::TruncateString( MBCHAR *name, sint32 width )
+//
+//  add
+//      aui_BitmapFont::GlyphInfo *aui_BitmapFont::GetGlyphInfo2( MBCHAR *c )
+//
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
 #include "aui_ui.h"
@@ -42,7 +68,7 @@ TT_Engine aui_BitmapFont::m_ttEngine = { NULL };
 
 aui_BitmapFont::aui_BitmapFont(
 	AUI_ERRCODE *retval,
-	MBCHAR *descriptor )
+	MBCHAR const *descriptor )
 	:
 	aui_Base()
 {
@@ -89,7 +115,7 @@ void aui_BitmapFont::DescriptorToAttributes(
 
 
 
-AUI_ERRCODE aui_BitmapFont::InitCommon( MBCHAR *descriptor )
+AUI_ERRCODE aui_BitmapFont::InitCommon( MBCHAR const *descriptor )
 {
 	AUI_ERRCODE errcode = SetFilename( descriptor );
 	Assert( AUI_SUCCESS(errcode) );
@@ -195,7 +221,7 @@ aui_BitmapFont::~aui_BitmapFont()
 
 
 
-AUI_ERRCODE aui_BitmapFont::SetFilename( MBCHAR *descriptor )
+AUI_ERRCODE aui_BitmapFont::SetFilename( MBCHAR const * descriptor )
 {
 	memset( m_descriptor, '\0', sizeof( m_descriptor ) );
 
@@ -449,7 +475,7 @@ aui_BitmapFont::GlyphInfo *aui_BitmapFont::GetGlyphInfo( MBCHAR c )
 {
 	if ( !IsCached( c ) )
 	{
-		AUI_ERRCODE errcode;
+		AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 		GlyphInfo *gi = m_glyphs + (sint32)uint8(c); 
 
@@ -1026,7 +1052,7 @@ AUI_ERRCODE aui_BitmapFont::RenderLine(
 
 	
 	const MBCHAR *lastBreakPtr = NULL;
-	sint32 lastBreakPos;
+	sint32 lastBreakPos = 0;
 
 	if ( wrap && !midWordBreaksOnly )
 	{
@@ -1051,7 +1077,7 @@ AUI_ERRCODE aui_BitmapFont::RenderLine(
 			return AUI_ERRCODE_OK;
 
 		case '\b': 
-			if ( gi = GetGlyphInfo( ' ' ) )
+			if ((gi = GetGlyphInfo( ' ' )))
 				penPos->x -= gi->advance;
 			break;
 

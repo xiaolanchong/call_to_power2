@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Army data handling
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -17,7 +18,8 @@
 //
 // Compiler flags
 //
-// - None
+// _DEBUG
+// - Generate debug version when set.
 //
 //----------------------------------------------------------------------------
 //
@@ -48,6 +50,9 @@
 // - Implemented GovernmentModified for UnitDB - April 30th 2005 Martin Gühmann
 // - Added unit record and civilisation information to some messageboxes.
 // - Repaired crash when inciting an uprising succeeds.
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+// - Positions of units on transports are now updated. (Sep 9th 2005 Martin Gühmann)
+// - Improved grouping checks.
 //
 //----------------------------------------------------------------------------
 
@@ -59,12 +64,9 @@
 #include "World.h"
 #include "player.h"
 #include "director.h"
-#include "CivPaths.h"
 #include "SelItem.h"
-#include "installationtree.h"
 
 #include "terrainutil.h"
-#include "installation.h"
 #include "RandGen.h"
 #include "Cell.h"
 #include "Agreement.h"
@@ -94,7 +96,6 @@
 #include "StrDB.h"
 #include "WonderRecord.h"
 #include "TerrainRecord.h"
-#include "SpriteStateDB.h"
 #include "GameSettings.h"
 
 #include "UnitRecord.h"
@@ -109,9 +110,6 @@
 #include "gamesounds.h"
 #include "Order.h"
 #include "cellunitlist.h"
-
-#include "CityAstar.h"
-extern CityAstar g_city_astar;
 
 #include "AgreementPool.h"
 extern AgreementPool *g_theAgreementPool;
@@ -150,7 +148,6 @@ extern Pollution *g_thePollution;
 BOOL g_smokingCrack = TRUE;
 BOOL g_useOrderQueues = TRUE;
 
-extern CivPaths *g_civPaths;
 extern RandomGenerator *g_rand ;
 extern QuadTree<Unit> *g_theUnitTree;
 extern UnitAstar *g_theUnitAstar;
@@ -170,9 +167,6 @@ extern SoundManager *g_soundManager;
 #include "profileDB.h"
 #include "Diplomacy_Log.h"
 extern Diplomacy_Log *g_theDiplomacyLog;
-
-#include "c3ui.h"
-extern C3UI *g_c3ui;
 
 namespace
 {
@@ -255,6 +249,27 @@ public:
         AddUnitRecord(actor.GetType());
     };
 };
+
+//----------------------------------------------------------------------------
+//
+// Name       : IsSolist
+//
+// Description: Determine whether unit should not be grouped with others
+//
+// Parameters : u       : the unit
+//
+// Globals    : -
+//
+// Returns    : bool    : unit is immobile or otherwise forbidden to group
+//
+// Remark(s)  : -
+//
+//----------------------------------------------------------------------------
+bool IsSolist(Unit const & u)
+{
+    return u.IsImmobile() || u.CantGroup();
+}
+
 
 } // namespace
 
@@ -1016,25 +1031,34 @@ void ArmyData::GetActors(Unit &excludeMe, UnitActor **restOfStack)
 void ArmyData::GroupArmy(Army &army)
 {
     sint32 i;
-    DPRINTF(k_DBG_GAMESTATE, ("Army %lx grouping army %lx",
-                              m_id, army));
+    DPRINTF(k_DBG_GAMESTATE, ("Army %lx grouping army %lx", m_id, army));
 
-    army.SetRemoveCause(CAUSE_REMOVE_ARMY_GROUPING);
-    bool atLeastOneAsleep = false;
-
-    //PFT 17 Mar 05, exclude immobile units
-    for(i = 0; i < army.Num(); i++){//check incoming army for immobile units
-        if(army[i].IsImmobile()){
+    // PFT 17 Mar 05, E 18-Oct-2005: 
+    // Prevent some categories of units from grouping.
+    
+    // Check incoming army for restrictions
+    for (i = 0; i < army.Num(); ++i)
+    {
+        if (IsSolist(army[i]))
+        {
              return;
         }
     }
-    //incoming army ok, so
-    for(i = 0; i < m_nElements; i++) {// check this army
-        if(army[i].IsImmobile()){
-              return;
+
+    // Check this army for restrictions
+    for (i = 0; i < m_nElements; ++i)
+    {
+        if (IsSolist(m_array[i]))
+        {
+             return;
         }
     }
+
+
     // both armies ok
+    army.SetRemoveCause(CAUSE_REMOVE_ARMY_GROUPING);
+    bool atLeastOneAsleep = false;
+
     for(i = army.Num() - 1; i >= 0; i--) {
         DPRINTF(k_DBG_GAMESTATE, ("Inserting unit %lx\n", army[i]));
         g_gevManager->AddEvent(GEV_INSERT_AfterCurrent, GEV_AddUnitToArmy,
@@ -1099,9 +1123,9 @@ void ArmyData::GroupAllUnits()
                     }
                 }
                 //exclude immobile units, PFT 17 Mar 05
-                sint32 t = ul->Access(i).GetType();
-                if(g_theUnitDB->Get(t, g_player[GetOwner()]->GetGovernmentType())->GetMaxMovePoints()< 1.0)
+                if (IsSolist(ul->Access(i)))
                     continue;
+
                 ul->Access(i).GetArmy().SetRemoveCause(CAUSE_REMOVE_ARMY_GROUPING);
                 ul->Access(i).ChangeArmy(Army(m_id), CAUSE_NEW_ARMY_GROUPING);
                 DPRINTF(k_DBG_GAMESTATE, ("Grouped unit %lx\n",
@@ -1147,25 +1171,32 @@ void ArmyData::GroupUnit(Unit &unit)
 {
     DPRINTF(k_DBG_GAMESTATE, ("Army %lx grouping unit %lx\n", m_id, unit));
 
-
-    if(!g_theUnitPool->IsValid(unit)) {
-        if(g_network.IsHost()) {
-            Assert(!g_network.IsLocalPlayer(m_owner));
-            if(!g_network.IsLocalPlayer(m_owner)) {
-                g_network.Resync(m_owner);
-                return;
-            }
-        } else if(g_network.IsClient()) {
+    Assert(unit.IsValid());
+    if (!unit.IsValid()) 
+    {
+        if (g_network.IsHost() && !g_network.IsLocalPlayer(m_owner)) 
+        {
+            g_network.Resync(m_owner);
+        } 
+        else if (g_network.IsClient()) 
+        {
             g_network.RequestResync(RESYNC_INVALID_UNIT);
-            return;
         }
-        Assert(g_theUnitPool->IsValid(unit));
         return;
     }
 
-    //exclude immobile units, PFT 17 Mar 05
-    if(unit.IsImmobile())
+    // Exclude some categories of units
+    if (IsSolist(unit))
+    {
         return;
+    }
+    for (int j = 0; j < m_nElements; ++j)
+    {
+        if (IsSolist(m_array[j]))
+        {
+            return;
+        }
+    }
 
     MapPoint upos;
     unit.GetPos(upos);
@@ -1175,7 +1206,7 @@ void ArmyData::GroupUnit(Unit &unit)
 
     if(upos == m_pos) {
 
-        if(unit.GetArmy().IsValid())
+        if (unit.GetArmy().IsValid())
         {
             unit.GetArmy().SetRemoveCause(CAUSE_REMOVE_ARMY_GROUPING);
         }
@@ -1188,10 +1219,9 @@ void ArmyData::GroupUnit(Unit &unit)
             RemoveUnitReferenceFromPlayer(unit, CAUSE_REMOVE_ARMY_GROUPING, m_owner);
 
         unit.ChangeArmy(Army(m_id), CAUSE_NEW_ARMY_GROUPING);
-
     }
 
-    if(IsAsleep() || unit.Flag(k_UDF_IS_ASLEEP)) {
+    if (IsAsleep() || unit.Flag(k_UDF_IS_ASLEEP)) {
         WakeUp();
     }
 
@@ -1636,15 +1666,14 @@ ORDER_RESULT ArmyData::NullifyWalls(const MapPoint &point)
 //----------------------------------------------------------------------------
 ORDER_RESULT ArmyData::StealTechnology(const MapPoint &point)
 {
-
-    sint32 whichAdvance = -1;
-
     Unit c = GetAdjacentCity(point);
     if(c.m_id == 0)
         return ORDER_RESULT_ILLEGAL;
 
     if(c.GetOwner() == m_owner)
         return ORDER_RESULT_ILLEGAL;
+
+    sint32 whichAdvance = -1;
 
     for(sint32 i = 0; i < m_nElements; i++) {
         if(g_theUnitDB->Get(m_array[i].GetType(), g_player[GetOwner()]->GetGovernmentType())->
@@ -1765,7 +1794,6 @@ ORDER_RESULT ArmyData::InciteRevolution(const MapPoint &point)
 //----------------------------------------------------------------------------
 ORDER_RESULT ArmyData::AssassinateRuler(const MapPoint &point)
 {
-	Unit u;
 	Unit c = GetAdjacentCity(point);
 	if(c.m_id == 0)
 		return ORDER_RESULT_ILLEGAL;
@@ -1784,7 +1812,7 @@ ORDER_RESULT ArmyData::AssassinateRuler(const MapPoint &point)
 								   GEA_Unit, m_array[i].m_id,
 								   GEA_City, c.m_id,
 								   GEA_End);
-			u = m_array[i];         
+	        Unit u = m_array[i];         
             
 			g_slicEngine->Execute
                 (new CityReport("911ConductHitCompleteVictim", c));
@@ -1824,13 +1852,13 @@ Unit ArmyData::GetAdjacentCity(const MapPoint &point) const
 	Cell *cell = g_theWorld->GetCell(point);
 
 	if(cell->GetCity().m_id == 0)
-		return Unit(0);
+		return Unit();
 
 	MapPoint mypos;
 	GetPos(mypos);
 	
 	if(!point.IsNextTo(mypos) && point != mypos) {
-		return Unit(0);
+		return Unit();
 	}
 
 	return cell->GetCity();
@@ -2662,7 +2690,7 @@ void ArmyData::FixActors(MapPoint &opos, const MapPoint &npos, UnitDynamicArray 
 		top_src = m_array[0];
 
 	
-	UnitActor **restOfStack; 
+	UnitActor **restOfStack = NULL; 
 	sint32 numRest = m_nElements - 1;
 
 	if (numRest > 0) {
@@ -2739,7 +2767,7 @@ BOOL ArmyData::CanSlaveRaid(double &success, double &death,
 BOOL ArmyData::CanSlaveRaid(double &success, double &death, 
 							sint32 &timer, sint32 &amount) const
 {
-	UnitRecord::SlaveRaidsData *data;
+	UnitRecord::SlaveRaidsData *data = NULL;
 	for(sint32 i = 0; i < m_nElements; i++) {
 		if( !m_array[i].GetDBRec()->GetSlaveRaids(data)) {
 			
@@ -3866,7 +3894,7 @@ BOOL ArmyData::CanConvertCity(const MapPoint &point) const
 //----------------------------------------------------------------------------
 ORDER_RESULT ArmyData::ConvertCity(const MapPoint &point)
 {
-	double chance, death_chance;
+	double chance = 0.0, death_chance = 0.0;
 	double best_chance = 0.0;
 	double best_death_chance = 0.0;
 	sint32 best_uindex = -1;
@@ -4648,14 +4676,20 @@ BOOL ArmyData::CanPillage(uint32 & uindex) const
 	GetPos(pos);
 	Cell *cell = g_theWorld->GetCell(pos);
 
-	
+
+	//NOT WORKING...added by E for Visible Wonders and Urban Sprawl 
+	//const TerrainImprovementRecord *rec = g_theTerrainImprovementDB->Get();
+	//if(rec->CantPillage()) {
+	//		return false;
+	//}
+	//OR THIS? TerrainImprovementRecord::GetCantPillage
+	//const TerrainImprovementRecord::Effect *eff;
+	//	eff = terrainutil_GetTerrainEffect(rec, cell->GetTerrain());
+	//	if(!eff)
+	//		return false;
+
 	sint32 num_improvements = cell->GetNumDBImprovements();
 	if (num_improvements <= 0) {
-		
-		
-		
-		
-		
 		
 			return false;
 		
@@ -5913,11 +5947,11 @@ BOOL ArmyData::ExecuteOrders(bool propagate)
 				Assert(FALSE);
 		}
 
-        #ifdef _DEBUG
-            if (g_theDiplomacyLog) { 
-                g_theDiplomacyLog->PopRegardRequest(); 
-            } 
-        #endif _DEBUG
+#ifdef _DEBUG
+			if (g_theDiplomacyLog) {
+				g_theDiplomacyLog->PopRegardRequest(); 
+			}
+#endif _DEBUG
 
 		if(!g_theArmyPool->IsValid(me)) {
 			keepGoing = FALSE;
@@ -6810,7 +6844,7 @@ void ArmyData::UpdateZOCForMove(const MapPoint &pos, WORLD_DIRECTION d)
 		}
 	}
 
-	uint8 dirs;
+	uint8 dirs = 0;
 	sint32 dd;
 	MapPoint chk;
 	if(!doneRemoving) {
@@ -6841,7 +6875,7 @@ void ArmyData::UpdateZOCForMove(const MapPoint &pos, WORLD_DIRECTION d)
 		
 		sint32 mp;
 		for(mp = points.Num() - 1; mp >= 0; mp--) {
-			g_theWorld->AddOtherArmyZOC(points[mp], m_owner, me, Unit(0));
+			g_theWorld->AddOtherArmyZOC(points[mp], m_owner, me, Unit());
 		}
 	}
 
@@ -6975,10 +7009,10 @@ void ArmyData::MoveActors(const MapPoint &pos,
 	sint32 numRevealed = revealedUnits.Num();
 
 	
-	UnitActor **restOfStack; 
+	UnitActor **restOfStack = NULL; 
 	sint32 numRest = 0;
 
-	Unit nonDead(0);
+	Unit nonDead;
 
 	sint32 i;
 	for(i = 0; i < m_nElements; i++) {
@@ -7096,6 +7130,11 @@ void ArmyData::MoveUnits(const MapPoint &pos)
 			g_theWorld->RemoveUnitReference(m_pos, m_array[i]);
 			r = m_array[i].MoveToPosition(pos, revealedUnits, revealedUnexplored);
 
+			if(m_array[i].GetNumCarried() > 0){
+				sint32 j;
+				for(j = 0; j < m_array[i].GetNumCarried(); ++j)
+				m_array[i].GetData()->GetCargoList()->Access(j).SetPosAndNothingElse(pos);
+			}
 			
 			if(revealedUnits.Num() > 0 && !m_array[i].GetDBRec()->GetSingleUse()) {
 #ifdef _DEBUG
@@ -7128,8 +7167,8 @@ void ArmyData::MoveUnits(const MapPoint &pos)
 		}
 	}
 	if(anyVisible && g_radarMap) {
-		g_radarMap->RedrawTile(&oldPos);
-		g_radarMap->RedrawTile(&m_pos);
+		g_radarMap->RedrawTile(&oldPos); // oldPos only used here
+		g_radarMap->RedrawTile(&m_pos); // m_pos hasn't been modified so oldPos and m_pos are still identical
 	}
 
 	if(HasLeftMap()) {
@@ -7391,7 +7430,7 @@ BOOL ArmyData::MoveIntoTransport(const MapPoint &pos, CellUnitList &transports)
 	sint32		numRevealed = 0;
 
 	
-	UnitActor **restOfStack; 
+	UnitActor **restOfStack = NULL; 
 	sint32 numRest = m_nElements - 1;
 
 	if (numRest > 0) {
@@ -7534,7 +7573,7 @@ BOOL ArmyData::ExecuteUnloadOrder(Order *order)
 			unitUnloadDone = m_array[i].UnloadCargo(to_pt, debark, TRUE, Unit(order->m_argument)) || unitUnloadDone;
 		} else if(order->m_order == UNIT_ORDER_UNLOAD ||
 			      order->m_order == UNIT_ORDER_MOVE_THEN_UNLOAD) {
-			unitUnloadDone = m_array[i].UnloadCargo(to_pt, debark, FALSE, Unit(0)) || unitUnloadDone;
+			unitUnloadDone = m_array[i].UnloadCargo(to_pt, debark, FALSE, Unit()) || unitUnloadDone;
 		} else if(order->m_order == UNIT_ORDER_UNLOAD_SELECTED_STACK) {
 			unitUnloadDone = m_array[i].UnloadSelectedCargo(to_pt, debark) || unitUnloadDone;
 		} else {
@@ -7870,7 +7909,7 @@ sint32 ArmyData::Fight(CellUnitList &defender)
 		}
 	} else {
 		
-		g_director->IncrementPendingGameActions();
+//		g_director->IncrementPendingGameActions();
 
 		
 		g_gevManager->AddEvent(GEV_INSERT_AfterCurrent,
@@ -7917,14 +7956,14 @@ void ArmyData::UpdateZOCForRemoval()
 	}
 
 	g_theWorld->RemoveZOC(m_pos, m_owner);
-	g_theWorld->AddOtherArmyZOC(m_pos, m_owner, Army(m_id), Unit(0));
+	g_theWorld->AddOtherArmyZOC(m_pos, m_owner, Army(m_id), Unit());
 	
 	sint32 dd;
 	for(dd = 0; dd < (sint32)NOWHERE; dd++) {
 		MapPoint npos;
 		if(m_pos.GetNeighborPosition((WORLD_DIRECTION)dd, npos)) {
 			g_theWorld->RemoveZOC(npos, m_owner);
-			g_theWorld->AddOtherArmyZOC(npos, m_owner, Army(m_id), Unit(0));
+			g_theWorld->AddOtherArmyZOC(npos, m_owner, Army(m_id), Unit());
 		}
 	}
 }
@@ -8474,7 +8513,7 @@ BOOL ArmyData::ExecuteSpecialOrder(Order *order, BOOL &keepGoing)
 			result = SlaveRaid(order->m_point);
 			break;
 		case UNIT_ORDER_ENSLAVE_SETTLER:
-			result = EnslaveSettler(order->m_point, 0, Unit(0));
+			result = EnslaveSettler(order->m_point, 0, Unit());
 			break;
 		case UNIT_ORDER_UNDERGROUND_RAILWAY:
 			result = UndergroundRailway(order->m_point);
@@ -9894,17 +9933,19 @@ void ArmyData::StopPirating()
 
 	Cell *cell = g_theWorld->GetCell(m_pos);
 	Assert(cell);
-	if(cell) {
-		sint32 i;
-		sint32 piratedByMe = 0;
-		for(i = 0; i < cell->GetNumTradeRoutes(); i++) {
+	if (cell) 
+    {
+		for(sint32 i = 0; i < cell->GetNumTradeRoutes(); ++i) 
+        {
 			TradeRoute route = cell->GetTradeRoute(i);
-			if(route->GetPiratingArmy().m_id == m_id) {
-				
-				g_gevManager->AddEvent(GEV_INSERT_AfterCurrent, GEV_SetPiratingArmy,
-					   GEA_TradeRoute, m_array[i],
-					   GEA_Army, Army(0),
-					   GEA_End);
+			if (route->GetPiratingArmy().m_id == m_id) 
+            {
+				g_gevManager->AddEvent
+                    (GEV_INSERT_AfterCurrent, GEV_SetPiratingArmy,
+					 GEA_TradeRoute, m_array[i],
+					 GEA_Army, 0,
+					 GEA_End
+                    );
 			}
 		}
 	}

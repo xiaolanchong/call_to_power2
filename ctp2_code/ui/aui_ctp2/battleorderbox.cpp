@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Battle order box.
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -17,11 +18,14 @@
 //
 // Compiler flags
 //
+// - None
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
 // - Added unit display name.
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -41,7 +45,7 @@
 #include "SpriteState.h"
 
 #include "pixelutils.h"
-#include "colorset.h"
+#include "colorset.h"               // g_colorSet
 #include "c3_coloredstatic.h"
 #include "controlsheet.h"
 #include "textbutton.h"
@@ -60,8 +64,6 @@
 #include "UnitRecord.h"
 #include "IconRecord.h"
 
-extern ColorSet		*g_colorSet;
-
 #define k_UNIT_FRAME_THICKNESS	2
 
 BattleOrderBox::BattleOrderBox(AUI_ERRCODE *retval, 
@@ -70,9 +72,9 @@ BattleOrderBox::BattleOrderBox(AUI_ERRCODE *retval,
 					   ControlActionCallback *ActionFunc, 
 					   void *cookie)
 	: 
-	ControlSheet(retval, id, ldlBlock, ActionFunc, cookie),
+	aui_ImageBase( ldlBlock ),
 	aui_TextBase( ldlBlock, (MBCHAR *)NULL ),
-	aui_ImageBase( ldlBlock )
+	ControlSheet(retval, id, ldlBlock, ActionFunc, cookie)
 {
 	InitCommon(ldlBlock);
 }
@@ -87,9 +89,9 @@ BattleOrderBox::BattleOrderBox(AUI_ERRCODE *retval,
 					   ControlActionCallback *ActionFunc, 
 					   void *cookie)
 	:
-	ControlSheet(retval, id, x, y, width, height, pattern, ActionFunc, cookie),
+	aui_ImageBase( (sint32)0 ),
 	aui_TextBase( NULL ),
-	aui_ImageBase( (sint32)0 )
+	ControlSheet(retval, id, x, y, width, height, pattern, ActionFunc, cookie)
 {
 	InitCommon(NULL);
 }
@@ -104,7 +106,7 @@ AUI_ERRCODE BattleOrderBox::InitCommon( MBCHAR *ldlBlock)
 	MBCHAR			fortifyBlock[ k_AUI_LDL_MAXBLOCK + 1 ];
 
 	RECT			iconRect;
-	AUI_ERRCODE		errcode;
+	AUI_ERRCODE		errcode = AUI_ERRCODE_OK;
 	
 	sint32	i,j;
 
@@ -618,8 +620,8 @@ void BattleOrderBox::SetStack(Army &selectedArmy, CellUnitList *fullArmy, Unit s
 			Assert(action);
 			if (!action) continue;
 
-			action->SetUnit(Unit(0));
-			action->SetArmy(Army(0));
+			action->SetUnit(Unit());
+			action->SetArmy(Army());
 		}
 	} else {
 		sint32		count = fullArmy->Num();
@@ -641,8 +643,8 @@ void BattleOrderBox::SetStack(Army &selectedArmy, CellUnitList *fullArmy, Unit s
 			Assert(action);
 			if (!action) continue;
 
-			action->SetUnit(Unit(0));
-			action->SetArmy(Army(0));
+			action->SetUnit(Unit());
+			action->SetArmy(Army());
 
 		}
 

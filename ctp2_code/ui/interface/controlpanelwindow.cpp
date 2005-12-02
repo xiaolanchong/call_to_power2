@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Control panel handling
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -18,8 +19,8 @@
 // Compiler flags
 //
 // _DEBUG
-// Set when generating the debug version.
-// 
+// - Set when generating the debug version.
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
@@ -37,6 +38,9 @@
 // - Added unit display name.
 // - Relaxed Assert for invisible buttons with mods.
 // - Prevented crashes with mods.
+// - Added special attack window. (Aug 15th 2005 Martin Gühmann)
+// - Removed unused methods: FillBank, ClearButtons and AddButton.
+//   (Aug 16th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 //
@@ -47,7 +51,8 @@
 //   CityPanelRebuild - notice the strange immediate return) are never called,
 //   and some variables (e.g. m_mainDropDown) are not NULL-initialised in the 
 //   constructor. Maybe this is some leftover of the CTP1 code?
-// 
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+//
 //----------------------------------------------------------------------------
 
 #include "c3.h"
@@ -99,7 +104,7 @@
 
 #include "c3cmdline.h"
 #include "SelItem.h"
-#include "player.h"
+#include "player.h"                     // g_player
 #include "c3window.h"
 #include "ctp2_Window.h"
 #include "ctp2_Menu.h"
@@ -119,27 +124,27 @@
 #include "IconRecord.h"
 #include "SelItem.h"
 #include "TurnCnt.h"
-#include "UnitPool.h"
+#include "UnitPool.h"                   // g_theUnitPool
 #include "Unit.h"
 #include "UnitData.h"
 #include "UnitRecord.h"
-#include "StrDB.h"
+#include "StrDB.h"                      // g_theStringDB
 #include "screenutils.h"
 #include "Advances.h"
 #include "AdvanceRecord.h"
 #include "advanceutil.h"
 #include "ArmyData.h"
-#include "ArmyPool.h"
+#include "ArmyPool.h"                   // g_theArmyPool
 #include "cellunitlist.h"
 #include "Cell.h"
-#include "World.h"
-#include "director.h"
+#include "World.h"                      // g_theWorld
+#include "director.h"                   // g_director
 #include "Events.h"
 #include "GameEventUser.h"
 #include "TerrainRecord.h"
 
 #include "pixelutils.h"
-#include "colorset.h"
+#include "colorset.h"                   // g_colorSet
 #include "primitives.h"
 
 #include "controlpanelwindow.h"
@@ -190,8 +195,9 @@
 #include "profileDB.h"
 #include "helptile.h"
 
-#include "gameinit.h"		// g_startHotseatGame
-#include <string>			// std::string
+#include "SpecialAttackWindow.h"
+#include "gameinit.h"                   // g_startHotseatGame
+#include <string>                       // std::string
 
 extern ProgressWindow *g_theProgressWindow;
 
@@ -214,56 +220,41 @@ extern ProgressWindow *g_theProgressWindow;
 
 
 
-extern sint32				g_ScreenWidth;
-extern sint32				g_ScreenHeight;
-extern C3UI					*g_c3ui;
-extern Background			*g_background;
-extern UnitPool				*g_theUnitPool;
-extern StringDB				*g_theStringDB;
-extern InfoBar				*g_infoBar;
-extern Player				**g_player;
-extern World				*g_theWorld;
-extern CursorManager		*g_cursorManager;
-extern ArmyPool				*g_theArmyPool;
-extern Director			   	*g_director;
-extern ColorSet				*g_colorSet;
-
-extern KEYMAP		*theKeyMap;
+extern sint32               g_ScreenWidth;
+extern sint32               g_ScreenHeight;
+extern C3UI                 *g_c3ui;
+extern InfoBar              *g_infoBar;
+extern CursorManager        *g_cursorManager;
+extern KEYMAP               *theKeyMap;
 
 
-ctp2_MenuBar				*s_menubar=NULL;
-ControlPanelWindow			*g_controlPanel;
+ctp2_MenuBar                *s_menubar=NULL;
+ControlPanelWindow          *g_controlPanel;
 
-extern Network				g_network;
+extern Network              g_network;
 
-extern FilenameDB			*g_theMessageIconFileDB;
-
-
-void CityManagerButtonCallback	(aui_Control *control, uint32 action, uint32 data, void *cookie);
+extern FilenameDB           *g_theMessageIconFileDB;
 
 
-void TabGroupButtonCallback			(aui_Control *control, uint32 action, uint32 data, void *cookie);
-void TileImpSelectionCallback		(aui_Control *control, uint32 action, uint32 data, void *cookie);
+void CityManagerButtonCallback(aui_Control *control, uint32 action, uint32 data, void *cookie);
 
 
-void CityPanelDropDownCallback( aui_Control *control, uint32 action, uint32 data, void *cookie );
-void CityPanelNextCityCallback( aui_Control *control, uint32 action, uint32 data, void *cookie );
+void TabGroupButtonCallback   (aui_Control *control, uint32 action, uint32 data, void *cookie);
+void TileImpSelectionCallback (aui_Control *control, uint32 action, uint32 data, void *cookie);
 
 
-void UnitPanelNextUnitCallback( aui_Control *control, uint32 action, uint32 data, void *cookie );
-void UnitPanelListBoxCallback ( aui_Control *control, uint32 action, uint32 data, void *cookie );
+void CityPanelDropDownCallback(aui_Control *control, uint32 action, uint32 data, void *cookie);
+void CityPanelNextCityCallback(aui_Control *control, uint32 action, uint32 data, void *cookie);
 
 
-
-#define k_STATUS_WINDOW_HEIGHT		30
-#define k_CONTROL_PANEL_WIDTH		709 
-#define k_CONTROL_PANEL_HEIGHT		150
+void UnitPanelNextUnitCallback(aui_Control *control, uint32 action, uint32 data, void *cookie);
+void UnitPanelListBoxCallback (aui_Control *control, uint32 action, uint32 data, void *cookie);
 
 
-#define k_CPW_THOUSAND	1000			
-#define k_CPW_MILLION	1000000		
-#define k_CPW_BILLION	1000000000
-#define k_CPW_TRILLION	1000000000000
+#define k_CPW_THOUSAND  1000
+#define k_CPW_MILLION   1000000
+#define k_CPW_BILLION   1000000000
+#define k_CPW_TRILLION  1000000000000
 
 void TurnNextUnitButtonActionCallback( aui_Control *control, uint32 action, uint32 data, void *cookie )
 {
@@ -488,7 +479,8 @@ void GotoCityUtilityDialogBoxCallback(Unit city, sint32 val2)
 
 	if (city.IsValid())
 	{
-	    g_selected_item->Goto(city.RetPos());
+	    MapPoint        destPos = city.RetPos();
+	    g_selected_item->Goto(destPos);
 	}
 }
 
@@ -557,7 +549,7 @@ sint32 controlpanelwindow_Initialize()
 		MBCHAR			windowBlock[ k_AUI_LDL_MAXBLOCK + 1 ];
 		strcpy(windowBlock, "ControlPanelWindow");
 
-		AUI_ERRCODE		errcode;
+		AUI_ERRCODE		errcode = AUI_ERRCODE_OK;
 		g_controlPanel = new ControlPanelWindow(&errcode, aui_UniqueId(), windowBlock, 16 );
 		Assert( AUI_NEWOK(g_controlPanel, errcode) );
 		if ( !AUI_NEWOK(g_controlPanel, errcode) ) return -1;
@@ -579,6 +571,7 @@ void controlpanelwindow_Cleanup(void)
 {
 	CityWindow::Cleanup();
 	tileimptracker_Cleanup();
+	specialAttackWindow_Cleanup();
 
 	delete g_controlPanel;
 	g_controlPanel = NULL;
@@ -682,7 +675,7 @@ void ContextMenuCallback(ctp2_Menu *menu, CTP2_MENU_ACTION action, sint32 itemIn
 			break;
 		default:
 		{
-			Army a(0);
+			Army a;
 			if(!g_selected_item->GetSelectedArmy(a)) {
 				MapPoint pos = g_selected_item->GetCurSelectPos();
 				Cell *cell = g_theWorld->GetCell(pos);
@@ -1126,12 +1119,12 @@ ControlPanelWindow::ControlPanelWindow(
 	MBCHAR *ldlBlock,
 	sint32 bpp,
 	AUI_WINDOW_TYPE type ) : 
+m_mainWindow(NULL),
+m_contextMenu(NULL),
 m_turnToggle(true),
-m_terraFormMode(false),
 m_targetingMode(CP_TARGETING_MODE_OFF),
 m_currentOrder(NULL),
-m_contextMenu(NULL),
-m_mainWindow(NULL)
+m_terraFormMode(false)
 {
 	
 	*retval = AUI_ERRCODE_OK;
@@ -1829,7 +1822,7 @@ void ControlPanelWindow::PerformOrderAfterConfirmation(bool response, void *user
 	{
 		((OrderDataRec*)userData)->data->PerformOrder(((OrderDataRec*)userData)->rec);
 	}
-	delete userData;
+	delete (OrderDataRec*) userData;
 }
 
 
@@ -1901,27 +1894,27 @@ void
 ControlPanelWindow::OrderDeliveryUpdate()
 {
 	
-	if (m_currentOrder==NULL)
+	MapPoint pos;
+		
+	g_tiledMap->GetMouseTilePos(pos);
+
+	if(m_currentOrder==NULL)
 		ClearTargetingMode();
 
 	Army army = UnitPanelGetCurrent();
 
-	if (!g_theArmyPool->IsValid(army))
+	if(!g_theArmyPool->IsValid(army))
 		ClearTargetingMode();
-
 	
-	if (m_targetingMode==CP_TARGETING_MODE_OFF)
+	if(m_targetingMode==CP_TARGETING_MODE_OFF)
 		return;
 
 	ArmyData *data=army.AccessData();
 
-	if (data==NULL)
+	if(data==NULL){
+		specialAttackWindow_DisplayData(pos, -1);
 		return;
-
-	
-	MapPoint pos;
-		
-	g_tiledMap->GetMouseTilePos(pos);
+	}
 
 	ORDER_TEST test=army->TestOrderHere(m_currentOrder,pos);
 
@@ -1950,17 +1943,23 @@ ControlPanelWindow::OrderDeliveryUpdate()
 			} else {
 				g_cursorManager->SetCursor(CURSORINDEX_MOVE);
 			}
+			specialAttackWindow_DisplayData(pos, -1);
 		} else {
 			g_cursorManager->SetCursor(Order::GetCursor(m_currentOrder));
-			
+			if(army->CheckWasEnemyVisible(pos, true)){
+				specialAttackWindow_DisplayData(pos, m_currentOrder->GetIndex());
+			}
+			else{
+				specialAttackWindow_DisplayData(pos, -1);
+			}
 		}
 	} else {
 		if(m_currentOrder->GetTargetPretestMovePosition()) {
 			g_cursorManager->SetCursor(CURSORINDEX_NOMOVE);
 		} else {
 			g_cursorManager->SetCursor(Order::GetCursor(m_currentOrder));
-			
 		}
+		specialAttackWindow_DisplayData(pos, -1);
 	}
 
 }
@@ -1986,7 +1985,6 @@ ControlPanelWindow::TileImpUpdate()
 
 	if (!terrainutil_CanPlayerBuild(m_currentTerrainImpRec,player_id, hideExpensive))
 	{
-		tileimptracker_DisplayData(pos, -1);
 		ClearTargetingMode();
 		return;
 	}
@@ -2302,19 +2300,8 @@ void ControlPanelWindow::ClearTargetingMode()
 	MapPoint pos;
 	g_tiledMap->GetMouseTilePos(pos);
 	tileimptracker_DisplayData(pos, -1);
+	specialAttackWindow_DisplayData(pos, -1);
 }
-
-
-
-
-void 
-ControlPanelWindow::ClearButtons(void)
-{}
-
-void 
-ControlPanelWindow::AddButton(ORDERMODE mode)
-{}
-
 
 void
 ControlPanelWindow::CreateTabGroup(MBCHAR *ldlBlock)
@@ -2769,7 +2756,7 @@ ControlPanelWindow::CreateTileImpBanks()
 
 	const	IconRecord *irec;
 	bool	found;
-	uint32	row,column,theClass,group_id;
+	uint32	row = 0, column = 0, theClass = 0, group_id = 0;
 
 
 	
@@ -2798,7 +2785,7 @@ ControlPanelWindow::CreateTileImpBanks()
 	}
 
 			
-	for(uint32 current=0;current<g_theTerrainImprovementDB->NumRecords();current++)
+	for(sint32 current=0;current<g_theTerrainImprovementDB->NumRecords();current++)
 	{
 		found		= false;
 		group_id	= 0;
@@ -2906,7 +2893,7 @@ ControlPanelWindow::CreateTileImpBanks()
 				a_button->SetStatusText(g_theStringDB->GetNameStr( timpRec->GetStatusbar() ));
 				aui_TipWindow *tipwin = (aui_TipWindow *)a_button->GetTipWindow();
 				if(!tipwin) {
-					AUI_ERRCODE errcode;
+					AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 					tipwin = new aui_TipWindow(&errcode, aui_UniqueId(), "DefaultTipWindow");
 					Assert( AUI_NEWOK(tipwin,errcode) );
 					if ( AUI_NEWOK(tipwin,errcode) ) {
@@ -3752,7 +3739,7 @@ Army
 ControlPanelWindow::UnitPanelGetCurrent()
 {
 	
-	Army army(0);
+	Army army;
 
 	
 	sint32 p_index = g_selected_item->GetVisiblePlayer();
@@ -4038,199 +4025,6 @@ ControlPanelWindow::SetStack(Army &selectedArmy, CellUnitList *fullArmy, Unit si
 {
 
 }
-
-
-
-
-void 
-ControlPanelWindow::FillBank(Army &selected, CellUnitList *all)
-{
-	sint32				i, count, countAll;
-	Unit				unit;
-	const UnitRecord	*unitRec;
-	BOOL				condition = FALSE;
-	MapPoint			pos;
-	double				success, death;
-	sint32				timer, amount;
-	double				chance, deathChance, eliteChance;
-
-	ClearButtons();
-
-	if (selected.m_id==(0)) 
-		return;
-	
-	if (all==NULL) 
-		return;
-
-	count		= selected.Num();
-	countAll	= all->Num();
-
-	
-	for (i=0; i<count; i++) 
-	{
-		unit = selected.Access(i);
-		unit.GetPos(pos);	
-		unitRec = unit.GetDBRec();
-
-		if (!g_theUnitPool->IsValid(unit)) 
-		{
-			Assert(FALSE);
-			continue;
-		}
-
-	
-		
-		
-
-		
-		if (TRUE) 
-			AddButton(ORDERMODE_SLEEP);
-
-
-		
-
-
-
-
-
-
-
-			
-		
-		if (selected.CanEntrench()) 
-			AddButton(ORDERMODE_FORTIFY);
-		
-		
-		if (selected.CanPillage()) 
-			AddButton(ORDERMODE_PILLAGE);
-
-		
-		if (selected.CanReformCity()) 
-			AddButton(ORDERMODE_REFORMCITY);
-
-		
-		if ( selected.CanBombard() ) 
-			AddButton(ORDERMODE_BOMBARD);
-
-		
-		if (selected.CanSettle()) 
-			AddButton(ORDERMODE_SETTLE);
-
-		
-		if (selected.CanEstablishEmbassy()) 
-			AddButton(ORDERMODE_ESTABLISHEMBASSY);
-		
-		
-		
-		
-		
-		
-		if (selected.CanSellIndulgences()) 
-			AddButton(ORDERMODE_SELLINDULGENCES);
-
-		
-		if (selected.CanSoothsay()) 
-			AddButton(ORDERMODE_SOOTHSAY);
-		
-		
-		if (selected.CanSue()) 
-			AddButton(ORDERMODE_SUE);
-
-
-
-
-		double chance, randChance, escapeChance, success, death;
-
-		if (selected.CanUndergroundRailway(success, death)) 
-			AddButton(ORDERMODE_FREESLAVE);
-
-		if (selected.CanSlaveUprising()) 
-			AddButton(ORDERMODE_AIDUPRISING);
-		
-		if (selected.CanInvestigateCity(chance, eliteChance)) 
-			AddButton(ORDERMODE_SPY);
-
-		if (selected.CanStealTechnology(randChance, chance)) 
-			AddButton(ORDERMODE_STEALDISCOVERY);
-	
-		if (selected.CanAssasinateRuler(chance, eliteChance)) 
-			AddButton(ORDERMODE_BOMBCABINET);
-
-		if (selected.CanPlantNuke(chance, escapeChance)) 
-		{
-			if ( g_player[g_selected_item->GetVisiblePlayer()]->m_advances->HasAdvance(advanceutil_GetNukeAdvance())) 
-				AddButton(ORDERMODE_PLANTNUKE);
-		}
-		
-		
-
-
-		if (selected.CanCreateFranchise(chance)) 
-			AddButton(ORDERMODE_BRANCH);
-
-		
-		if (selected.CanAdvertise()) 
-			AddButton(ORDERMODE_ADVERTISE);
-
-		if (selected.CanNanoInfect(chance)) 
-			AddButton(ORDERMODE_PLANTNANOVIRUS);
-
-		if (selected.CanBioInfect(chance)) 
-			AddButton(ORDERMODE_INFECTCITY);
-
-		
-		if (selected.CanCloak()) 
-			AddButton(ORDERMODE_CLOAK);
-
-		
-		if (selected.CanCreatePark()) 
-			AddButton(ORDERMODE_CREATEPARK);
-
-		
-		if (selected.CanExpel()) 
-			AddButton(ORDERMODE_EXPEL);
-
-		
-		uint32 uindex;
-		if (selected.CanInterceptTrade(uindex)) 
-			AddButton(ORDERMODE_PIRACY);
-
-		if (selected.CanInciteRevolution(chance, eliteChance)) 
-			AddButton(ORDERMODE_INCITEREVOLUTION);
-
-		
-		if ( count == 1 && unitRec->GetCanCarry() ) 
-			
-			AddButton( ORDERMODE_CARGO );
-		
-
-		BOOL canRailLaunch = FALSE;
-		
-		
-		Unit city = g_theWorld->GetCell(unit.RetPos())->GetCity();
-	}
-
-	
-	if (selected.CanSlaveRaid(success, death, timer, amount)) 
-		AddButton(ORDERMODE_CAPTURESLAVES);
-
-	
-	if (selected.CanConvertCity(chance, deathChance)) 
-		AddButton(ORDERMODE_CONVERTCITY);
-
-	
-	if (selected.CanInjoin()) 
-		AddButton(ORDERMODE_FILEINJUNCTION);
-
-	
-	if (TRUE) 
-		AddButton(ORDERMODE_DISBAND);
-}
-
-
-
-
-
 
 void ThrowPartyUtilityDialogBoxCallback(MBCHAR *text, sint32 val2, void *data)
 {

@@ -1,4 +1,32 @@
-
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Battle event player
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// - None
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
 
@@ -203,7 +231,7 @@ void BattleEvent::ProcessAttack(void)
 					
 					Assert(actor);
 
-					Anim			*anim = actor->GetAnim(UNITACTION_ATTACK);
+					Anim *  anim = actor->CreateAnim(UNITACTION_ATTACK);
 					if (anim) {
 						Action			*action = new Action(UNITACTION_ATTACK, ACTIONEND_ANIMEND);
 
@@ -274,22 +302,25 @@ void BattleEvent::ProcessExplode(void)
 			if (!m_animating) {
 
 				if (actor) {
-					Action		*action;
+					Action		*action = NULL;
 
-					Anim		*anim = actor->GetAnim(EFFECTACTION_PLAY);
+					Anim *  anim = actor->CreateAnim(EFFECTACTION_PLAY);
 					if (anim == NULL) {
-						anim = actor->GetAnim(EFFECTACTION_FLASH);
+						anim = actor->CreateAnim(EFFECTACTION_FLASH);
 						if (anim)
+                        {
 							action = new Action(EFFECTACTION_FLASH, ACTIONEND_ANIMEND);
+                        }
 						else
+                        {
 							Assert(FALSE);
+                        }
 					} else {
 						action = new Action(EFFECTACTION_PLAY, ACTIONEND_ANIMEND);
 					}
 
 					action->SetAnim(anim);
 					actor->AddAction(action);
-
 					actor->Process();
 
 					if(data->explodeVictim) {
@@ -375,7 +406,7 @@ void BattleEvent::ProcessDeath(void)
 						anim = actor->MakeFakeDeath();
 					} else {
 						action = new Action(UNITACTION_VICTORY, ACTIONEND_ANIMEND);
-						anim = actor->GetAnim(UNITACTION_VICTORY);
+						anim = actor->CreateAnim(UNITACTION_VICTORY);
 					}
 
 					action->SetAnim(anim);
@@ -473,9 +504,9 @@ BattleViewActor *BattleEvent::GetActor(void)
 {
 	if (m_dataList->GetCount() <= 0) return NULL;
 
-	PointerList<BattleEventData>::PointerListNode	*node;
-	BattleEventData									*eventData;
-	BattleViewActor									*actor;
+	PointerList<BattleEventData>::PointerListNode	*node = NULL;
+	BattleEventData									*eventData = NULL;
+	BattleViewActor									*actor = NULL;
 
 	node = m_dataList->GetHeadNode();
 	Assert(node);

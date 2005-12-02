@@ -36,7 +36,7 @@
 #include "CTPDatabase.h"
 #include "cellunitlist.h"
 #include "player.h"
-#include "aicause.h"
+#include "AICause.h"
 #include "unitutil.h"
 #include "TerrImprove.h"
 #include "director.h"
@@ -60,93 +60,18 @@
 extern QuadTree<Unit>              *g_theUnitTree;
 
 #define k_TERRAIN_HEADER 'TERR'
-
-
-
 #define k_TERRAIN_ENV_HEADER 'TENV'
-
-
-
 #define k_CITIES_HEADER 'CITY'
-
-
-
-
-
-
-
-
-
-
 #define k_NEW_CITIES_HEADER 'NCTY'
-
-
-
-
-
-
-
-
-
-
 #define k_UNIT_TYPES_HEADER 'UTYP'
-
-
-
-
-
 #define k_UNITS_HEADER 'UNIT'
-
-
-
-
-
-
-
-
-
-
 #define k_IMPROVEMENT_TYPES_HEADER 'ITYP'
-
-
-
-
-
 #define k_IMPROVEMENTS_HEADER 'IMPS'
-
-
-
-
-
-
-
-
-
 #define k_VISION_HEADER 'VISN'
-
-
-
-
 #define k_ADVANCE_TYPES_HEADER 'ATYP'
-
-
-
-
-
 #define k_PLAYER_ADVANCES_HEADER 'PADV'
-
-
-
-
-
-
 #define k_HUTS_HEADER 'HUTS'
-
-
-
-
 #define k_CIVS_HEADER 'CIVS'
-
 
 
 const uint32 k_MAPFILE_NAME_LEN = 32;
@@ -963,7 +888,7 @@ bool MapFile::LoadUnits(uint8 *buf, sint32 size)
 			} else {
 				if(m_unitTypeMap[type] >= 0) {
 					MapPoint pos(x,y);
-					g_player[owner]->CreateUnit(m_unitTypeMap[type], pos, Unit(0), FALSE, CAUSE_NEW_ARMY_CHEAT);
+					g_player[owner]->CreateUnit(m_unitTypeMap[type], pos, Unit(), FALSE, CAUSE_NEW_ARMY_CHEAT);
 				}
 			}
 		}

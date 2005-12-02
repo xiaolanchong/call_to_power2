@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Unit & city sprite handling
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,7 +17,10 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// __MAKESPR__
+// - Probably supposed to generate the sprite make tool.
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
@@ -26,6 +30,7 @@
 // - Moved common SpriteGroup member handling to SpriteGroup.
 // - Removed Assert to make mod battles less tedious to debug.
 // - Cleaned up some superfluous tests.
+// - Fixed memory leaks.
 //
 //----------------------------------------------------------------------------
 
@@ -48,12 +53,11 @@
 #include "SpriteFile.h"
 #include "Anim.h"
 
-#include "colorset.h"
+#include "colorset.h"           // g_colorSet
 
 #include "Token.h"
 
 extern ScreenManager	*g_screenManager;
-extern ColorSet			*g_colorSet;
 
 UnitSpriteGroup::UnitSpriteGroup(GROUPTYPE type)
 :	SpriteGroup(type),
@@ -84,9 +88,9 @@ UnitSpriteGroup::~UnitSpriteGroup()
 
 void UnitSpriteGroup::DeallocateStorage(void)
 {
-	for (int i=UNITACTION_MOVE; i<UNITACTION_MAX; i++) 
+	for (sint32 i = UNITACTION_MOVE; i < UNITACTION_MAX; i++) 
 	{
-	    delete m_sprites[i];
+		delete m_sprites[i];
 		m_sprites[i] = NULL;
 	}
 }
@@ -100,13 +104,10 @@ void UnitSpriteGroup::DeallocateStorage(void)
 
 void UnitSpriteGroup::DeallocateFullLoadAnims(void)
 {
-	for (sint32 i = UNITACTION_MOVE + 1; i < UNITACTION_MAX; i++) 
+	for (sint32 i = UNITACTION_MOVE; i < UNITACTION_MAX; i++) 
 	{
-		if (i != UNITACTION_IDLE) 
-		{
-			delete m_anims[i];
-			m_anims[i] = NULL;
-		}
+		delete m_anims[i];
+		m_anims[i] = NULL;
 	}
 }
 
@@ -254,103 +255,6 @@ void UnitSpriteGroup::DrawDirect(aui_Surface *surf, UNITACTION action, sint32 fr
 
 void UnitSpriteGroup::RunBenchmark(aui_Surface *surf)
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	exit(0);
 }
 
@@ -508,18 +412,18 @@ sint32 UnitSpriteGroup::Parse(uint16 id, GROUPTYPE type)
 		shadowNames[i] = (char *)malloc(k_MAX_NAME_LENGTH<<1);
 	}
 
-	sprintf(prefixStr, ".\\%d\\", id);
+	sprintf(prefixStr, ".%s%d%s", FILE_SEP, id, FILE_SEP);
 
 	if (type == GROUPTYPE_UNIT)
 	{
-		sprintf(scriptName, "GU%#.3d.txt", id);
+		sprintf(scriptName, "GU%.3d.txt", id);
 
 		
 		if (!c3files_PathIsValid(scriptName))
-			sprintf(scriptName, "GU%#.2d.txt", id);
+			sprintf(scriptName, "GU%.2d.txt", id);
 	}
 	else 
-		sprintf(scriptName, "GC%#.3d.txt", id);
+		sprintf(scriptName, "GC%.3d.txt", id);
 
 	printf("Processing '%s'\n", scriptName);
 
@@ -910,11 +814,10 @@ UnitSpriteGroup::SetHotPoint(UNITACTION action, sint32 facing,POINT pt)
 
 void UnitSpriteGroup::ExportScript(MBCHAR *name)
 {
-	FILE				*file;
 	sint32				i;
 	extern TokenData	g_allTokens[];
 	
-	file = fopen(name, "w");
+	FILE * file = fopen(name, "w");
 	if (!file) {
 		c3errors_ErrorDialog("Sprite Export", "Could not open '%s' for writing.", name);
 		return;

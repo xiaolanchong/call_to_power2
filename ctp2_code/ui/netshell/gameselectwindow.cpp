@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Game type selection UI
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,7 +17,9 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// - None
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
@@ -120,7 +123,7 @@ AUI_ERRCODE GameSelectWindow::InitCommon( void )
 
 AUI_ERRCODE GameSelectWindow::CreateControls( void )
 {
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 
 	
@@ -235,7 +238,10 @@ AUI_ERRCODE GameSelectWindow::CreateControls( void )
 
 GameSelectWindow::~GameSelectWindow()
 {
-	g_gameSelectWindow = NULL;
+	if (this == g_gameSelectWindow)
+	{
+		g_gameSelectWindow = NULL;
+	}
 }
 
 
@@ -251,7 +257,8 @@ nf_GameSetup *GameSelectWindow::GetGameSetup(NETFunc::Session *session) {
 			return s;
 	}
 
-	s = new nf_GameSetup(&NETFunc::Game(session));
+	NETFunc::Game game = NETFunc::Game(session);
+	s = new nf_GameSetup(&game);
 	l->InsertItem(s);
 
 	return s;
@@ -282,7 +289,7 @@ AUI_ERRCODE GameSelectWindow::Idle( void )
 {	
 	NETFunc::Message *m;
 	
-	while(m = g_netfunc->GetMessage()) {
+	while((m = g_netfunc->GetMessage())) {
 		
 		
 		
@@ -500,15 +507,12 @@ void GameSelectWindow::PasswordScreenDone( MBCHAR *password )
 	
 	if ( mode != w->JOIN )
 	{
-		
-		
 		MBCHAR temp[ dp_PASSWORDLEN + 1 ] = "";
 		if ( password )
 		{
 			strncpy( temp, password, dp_PASSWORDLEN );
-			for ( sint32 i = 0; i < strlen( temp ); i++ )
+			for ( size_t i = 0; i < strlen( temp ); i++ )
 			{
-				
 				temp[ i ] = tolower( temp[ i ] );
 			}
 		}
@@ -518,7 +522,6 @@ void GameSelectWindow::PasswordScreenDone( MBCHAR *password )
 		g_gamesetup.SetClosed( false );
 		g_gamesetup.SetSyncLaunch( true );
 
-		
 		PlayerSelectWindow *psw = (PlayerSelectWindow *)g_netshell->
 			FindWindow(NetShell::WINDOW_PLAYERSELECT);
 		psw->GetPlayerSetup(g_netfunc->GetPlayer())->Reset();
@@ -557,16 +560,12 @@ StartSelectingWindow::StartSelectingWindow(
 		0,
 		AUI_WINDOW_TYPE_STANDARD )
 {
-	Assert( AUI_SUCCESS(*retval) );
 	if ( !AUI_SUCCESS(*retval) ) return;
 
 	*retval = InitCommon();
-	Assert( AUI_SUCCESS(*retval) );
 	if ( !AUI_SUCCESS(*retval) ) return;
 
 	*retval = CreateControls();
-	Assert( AUI_SUCCESS(*retval) );
-	if ( !AUI_SUCCESS(*retval) ) return;
 }
 
 
@@ -590,7 +589,7 @@ AUI_ERRCODE StartSelectingWindow::InitCommon( void )
 
 AUI_ERRCODE StartSelectingWindow::CreateControls( void )
 {
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 
 	
@@ -710,8 +709,10 @@ StartSelectingWindow::~StartSelectingWindow()
 {
 	loadsavescreen_Cleanup();
 
-
-	g_startSelectingWindow = NULL;
+	if (this == g_startSelectingWindow)
+	{
+		g_startSelectingWindow = NULL;
+	}
 }
 
 
@@ -720,7 +721,7 @@ AUI_ERRCODE StartSelectingWindow::Idle( void )
 {	
 	NETFunc::Message *m;
 	
-	while(m = g_netfunc->GetMessage()) {
+	while((m = g_netfunc->GetMessage())) {
 		
 		
 		
@@ -792,7 +793,8 @@ void StartSelectingWindow::NewButtonAction::Execute(
 		sint32 num = 2;
 		while ( 1 )
 		{
-			for ( sint32 i = 0; i < listbox->NumItems(); i++ )
+			sint32 i;
+			for ( i = 0; i < listbox->NumItems(); i++ )
 			{
 				NETFunc::GameSetup *game = (NETFunc::GameSetup *)
 					((ns_GameSetupItem *)listbox->GetItemByIndex( i ))->
@@ -923,7 +925,8 @@ void gameselectwindow_scenarioExitCallback(aui_Control *control,
 		sint32 num = 2;
 		while ( 1 )
 		{
-			for ( sint32 i = 0; i < listbox->NumItems(); i++ )
+			sint32 i;
+			for ( i = 0; i < listbox->NumItems(); i++ )
 			{
 				NETFunc::GameSetup *game = (NETFunc::GameSetup *)
 					((ns_GameSetupItem *)listbox->GetItemByIndex( i ))->

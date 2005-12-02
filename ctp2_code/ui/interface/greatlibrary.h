@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ header
 // Description  : Great library
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,15 +17,9 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
-// _MSC_VER		
-// - Compiler version (for the Microsoft C++ compiler only)
 //
-// Note: For the blocks with _MSC_VER preprocessor directives, the following
-//       is implied: the (_MSC_VER) preprocessor directive lines, and the blocks
-//       that are inactive for _MSC_VER value 1200 are modified Apolyton code. 
-//       The blocks that are inactiThe blocks that are active for _MSC_VER value 
-//       1200 are the original Activision code.
+// HAVE_PRAGMA_ONCE
+// - Uses #pragma once preprocessor derective
 //
 //----------------------------------------------------------------------------
 //
@@ -33,22 +28,23 @@
 // - Microsoft extensions marked.
 // - Increased maximum library text size to support the German version.
 // - Exported database name size max.
+// - Added function to look up an item name on creation index.
+// - Added alpha <-> index functions. (Sep 13th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
-
-#if defined(_MSC_VER) && (_MSC_VER > 1000)
+#ifdef HAVE_PRAGMA_ONCE
 #pragma once
 #endif
 
 #ifndef __GREATLIBRARY_H__
 #define __GREATLIBRARY_H__
 
-#include "ctp2_listitem.h"
-#include "keyboardhandler.h"
 #include <vector>	// std::vector
 
-
+class GreatLibrary;
+class Great_Library_Item;
+class TechListItem;
 
 #define k_GL_TREE_LEFT		5
 #define k_GL_TREE_TOP		40
@@ -102,6 +98,9 @@ enum LIB_STRING {
 	LIB_STRING_TREE
 };
 
+#include "ctp2_listitem.h"
+#include "keyboardhandler.h"
+
 class Chart;
 class ctp2_HyperTextBox;
 class DirectVideo;
@@ -139,7 +138,7 @@ public:
 class GreatLibrary : public KeyboardHandler {
 public:
 	GreatLibrary( sint32 theMode );
-	~GreatLibrary( void );
+	virtual ~GreatLibrary( void );
 
 	sint32 Initialize( MBCHAR *windowBlock );
 
@@ -274,8 +273,6 @@ public:
 
 	
 	void Back();
-
-	
 	void Forward();
 
 	void Display( void );
@@ -287,17 +284,20 @@ public:
 
 
 
-	sint32 GreatLibrary::ClearHistory( void );
-	sint32 HandleSetGoal( void );
-	const MBCHAR *GetItemName(int database, int item);
-	const MBCHAR *GetSelectionName();
+	void    ClearHistory(void);
+	void    HandleSetGoal(void);
+
+	MBCHAR const *  GetItemName(int database, int item) const;      // lexicographic index
+    MBCHAR const *  GetObjectName(int database, int index) const;   // database index
+	MBCHAR const *  GetSelectionName() const;
+
 	void SetCategoryName
 	(
 		int the_database
 	);
 
-	sint32 HandleIndexButton( ctp2_Button *button );
-	sint32 HandleListButton
+	void    HandleIndexButton( ctp2_Button *button );
+	void    HandleListButton
 	( 
 		aui_Control *control, 
 		uint32 action, 
@@ -305,7 +305,7 @@ public:
 		void *cookie 
 	);
 
-	sint32 UpdateList( DATABASE database );
+	void UpdateList(DATABASE database);
 
 	BOOL GetSci( void ) { return m_sci; }
 	void SetSci( BOOL sci ) { m_sci = sci; }
@@ -336,6 +336,8 @@ public:
 	ctp2_Window *GetWindow( void );
 
 	void FixTabs();
+	sint32 GetIndexFromAlpha(sint32 alpha, DATABASE theDatabase) const;
+	sint32 GetAlphaFromIndex(sint32 index, DATABASE theDatabase) const;
 };
 
 class TechListItem: public ctp2_ListItem

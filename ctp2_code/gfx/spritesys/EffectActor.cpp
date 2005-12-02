@@ -1,15 +1,32 @@
-
-
-
-
-
-
-
-
-
-
-
- 
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Effect actor
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// - None
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - Removed some unused local variables. (Sep 9th 2005 Martin Gühmann)
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
 
@@ -32,7 +49,6 @@
 
 #define k_doInvisible FALSE
 
-extern ColorSet			*g_colorSet;
 extern SpriteGroupList	*g_effectSpriteGroupList;
 extern TiledMap			*g_tiledMap;
 extern Director			*g_director;
@@ -41,10 +57,9 @@ EffectActor::EffectActor(SpriteState *ss, const MapPoint &pos)
 : Actor(ss)
 {
 	GROUPTYPE		type;
-	RECT			tmpRect = {0, 0, 10, 16};
 
 	
-	m_effectVisibility = NULL;
+	m_effectVisibility = 0;
 	m_bVisSpecial = FALSE;
 	m_spriteState = ss;
 	m_curEffectAction = EFFECTACTION_NONE;
@@ -256,7 +271,7 @@ void EffectActor::GetNextAction(BOOL isVisible)
 		m_curAction = NULL;
 	}
 
-		Action *pendingAction = LookAtNextAction();
+		Action *pendingAction = LookAtNextAction(); // Not used
 		
 		
 	if (numItems > 0) 
@@ -321,7 +336,7 @@ void EffectActor::AddAction(Action *actionObj)
 
 }
 
-Anim *EffectActor::GetAnim(EFFECTACTION action)
+Anim *EffectActor::CreateAnim(EFFECTACTION action)
 {
 	Assert(m_effectSpriteGroup != NULL);
 	if (m_effectSpriteGroup == NULL) return NULL;
@@ -331,16 +346,12 @@ Anim *EffectActor::GetAnim(EFFECTACTION action)
 	if (origAnim == NULL) 
 	{
 		
-		origAnim = m_effectSpriteGroup->GetAnim((GAME_ACTION)EFFECTACTION_PLAY);
+//		origAnim = m_effectSpriteGroup->GetAnim((GAME_ACTION)EFFECTACTION_PLAY);
 
 		return NULL;
 	}
 
-	Anim	*anim = new Anim();
-	*anim = *origAnim;
-	anim->SetSpecialCopyDelete(ANIMXEROX_COPY);
-
-	return anim;
+	return new Anim(*origAnim);
 }
 
 void EffectActor::Draw(void)
@@ -363,7 +374,6 @@ void EffectActor::DrawDirect(aui_Surface *surf, sint32 x, sint32 y)
 {
 	uint16			flags = k_DRAWFLAGS_NORMAL;
 	Pixel16			color=0;
-	BOOL			directionAttack = FALSE;
 	sint32			xoffset = (sint32)((double)k_ACTOR_CENTER_OFFSET_X * g_tiledMap->GetScale());
 	sint32			yoffset = (sint32)((double)k_ACTOR_CENTER_OFFSET_Y * g_tiledMap->GetScale());
 
@@ -386,7 +396,6 @@ void EffectActor::DrawDirect(aui_Surface *surf, sint32 x, sint32 y)
 void EffectActor::DrawDirectWithFlags(aui_Surface *surf, sint32 x, sint32 y, uint16 flags)
 {
 	Pixel16			color=0;
-	BOOL			directionAttack = FALSE;
 	sint32			xoffset = (sint32)((double)k_ACTOR_CENTER_OFFSET_X * g_tiledMap->GetScale());
 	sint32			yoffset = (sint32)((double)k_ACTOR_CENTER_OFFSET_Y * g_tiledMap->GetScale());
 

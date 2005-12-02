@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Collection of all setup windows.
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,12 +17,20 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// _DEBUG
+// - Generate debug version when set.
+//
+// LOCKSETTINGSONLAUNCH
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
 // - Memory leak repaired.
+// - Replaced old civilisation database by new one. (Aug 21st 2005 Martin Gühmann)
+// - The ages in the summary are now displayed correctly.
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -81,14 +90,14 @@
 #include "spnewgamediffscreen.h"
 #include "passwordscreen.h"
 #include "profileDB.h"
-#include "agerecord.h"
+#include "AgeRecord.h"
 
 #include "network.h"
 #include "CivilisationPool.h"
 #include "pixelutils.h"
 
 #include "StrDB.h"
-#include "CivilisationDB.h"
+#include "CivilisationRecord.h"
 #include "Exclusions.h"
 
 #include "CivPaths.h"
@@ -106,7 +115,6 @@ extern CivPaths *g_civPaths;
 extern CivScenarios *g_civScenarios;
 
 extern StringDB *g_theStringDB;
-extern CivilisationDatabase *g_theCivilisationDB;
 extern Exclusions *g_exclusions;
 
 extern sint32 g_is565Format;
@@ -168,14 +176,17 @@ AllinoneWindow::AllinoneWindow(
 
 AUI_ERRCODE AllinoneWindow::InitCommon( void )
 {
-	g_allinoneWindow = this;
+    if (!g_allinoneWindow)
+    {
+	    g_allinoneWindow = this;
+    }
 
 	m_controls = new aui_Control *[ m_numControls = CONTROL_MAX ];
 	Assert( m_controls != NULL );
 	if ( !m_controls ) return AUI_ERRCODE_MEMALLOCFAILED;
 	memset( m_controls, 0, m_numControls * sizeof( aui_Control *) );
 
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 	g_rulesWindow = new DialogBoxWindow(
 		&errcode,
 		"ruleswindow",
@@ -254,7 +265,7 @@ AUI_ERRCODE AllinoneWindow::InitCommon( void )
 
 AUI_ERRCODE AllinoneWindow::CreateControls( void )
 {
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 
 	
@@ -1211,16 +1222,12 @@ AllinoneWindow::~AllinoneWindow()
 	}
 
 	sint32 numActions = sizeof( m_dbActionArray ) / sizeof( aui_Action *);
-	for ( sint32 i = 0; i < numActions; i++ )
+	sint32 i;
+	for ( i = 0; i < numActions; i++ )
 	{
-		if ( m_dbActionArray[ i ] )
-		{
-			delete m_dbActionArray[ i ];
-			m_dbActionArray[ i ] = NULL;
-		}
+		delete m_dbActionArray[i];
 	}
 
-	
 	((aui_DropDown *)m_controls[ CONTROL_PLAYSTYLEDROPDOWN ])->
 		GetListBox()->RemoveItems( TRUE );
 
@@ -1294,60 +1301,15 @@ AllinoneWindow::~AllinoneWindow()
 		delete item;
 	}
 
-	if ( m_aiplayerList )
-	{
-		delete m_aiplayerList;
-		m_aiplayerList = NULL;
-	}
-
-	if ( m_messageKicked )
-	{
-		delete m_messageKicked;
-		m_messageKicked = NULL;
-	}
-
-	if ( m_messageGameSetup )
-	{
-		delete m_messageGameSetup;
-		m_messageGameSetup = NULL;
-	}
-
-	if ( m_messageGameEnter )
-	{
-		delete m_messageGameEnter;
-		m_messageGameEnter = NULL;
-	}
-
-	if ( m_messageGameCreate )
-	{
-		delete m_messageGameCreate;
-		m_messageGameCreate = NULL;
-	}
-
-	if ( m_messageGameHost )
-	{
-		delete m_messageGameHost;
-		m_messageGameHost = NULL;
-	}
-
-	if ( m_messageLaunched )
-	{
-		delete m_messageLaunched;
-		m_messageLaunched = NULL;
-	}
-
-	if ( m_playStyleValueStrings )
-	{
-		delete m_playStyleValueStrings;
-		m_playStyleValueStrings = NULL;
-	}
-
-	if ( m_PPTStrings )
-	{
-		delete m_PPTStrings;
-		m_PPTStrings = NULL;
-	}
-
+	delete m_aiplayerList;
+	delete m_messageKicked;
+	delete m_messageGameSetup;
+	delete m_messageGameEnter;
+	delete m_messageGameCreate;
+	delete m_messageGameHost;
+	delete m_messageLaunched;
+	delete m_playStyleValueStrings;
+	delete m_PPTStrings;
 	delete m_messageRequestDenied;
 
 	agesscreen_Cleanup();
@@ -1359,7 +1321,10 @@ AllinoneWindow::~AllinoneWindow()
 	custommapscreen_Cleanup();
 	spnewgamediffscreen_Cleanup();
 
-	g_allinoneWindow = NULL;
+    if (this == g_allinoneWindow)
+    {
+	    g_allinoneWindow = NULL;
+    }
 }
 
 
@@ -1479,7 +1444,7 @@ AUI_ERRCODE AllinoneWindow::CreateExclusions( void )
 		m_createdExclusions = false;
 	}
 
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 	aui_Action *action;
 
 	
@@ -1489,12 +1454,13 @@ AUI_ERRCODE AllinoneWindow::CreateExclusions( void )
 	listbox->SetAbsorbancy( FALSE );
 	sint32 height = listbox->Height();
 
-	aui_Switch *item;
+	aui_Switch *item = NULL;
 	tech_WLList<aui_Switch *> unitList;
 
 	m_numAvailUnits = g_nsUnits->GetStrings()->GetNumStrings();
 	g_gamesetup.SetNumAvailUnits( m_numAvailUnits );
-	for ( sint32 i = 0; i < m_numAvailUnits; i++ )
+	sint32 i;
+	for ( i = 0; i < m_numAvailUnits; i++ )
 	{
 		if ( !g_nsUnits->m_noIndex[ i ] )
 		{
@@ -2110,7 +2076,8 @@ BOOL AllinoneWindow::AssignTribe(
 
 	
 	TribeSlot *tribeSlots = g_gamesetup.GetTribeSlots();
-	for ( sint32 i = 0; i < k_NS_MAX_PLAYERS; i++ )
+	sint32 i;
+	for ( i = 0; i < k_NS_MAX_PLAYERS; i++ )
 	{
 		if ( tribeSlots[ i ].key == key && tribeSlots[ i ].isAI == isAI )
 		{
@@ -2122,7 +2089,7 @@ BOOL AllinoneWindow::AssignTribe(
 	if ( !unassign )
 	{
 		
-		sint32 playerIndex = i;
+		PLAYER_INDEX playerIndex = i;
 		if ( playerIndex == k_NS_MAX_PLAYERS )
 		{
 			for ( i = 0; i < k_NS_MAX_PLAYERS; i++ )
@@ -2194,8 +2161,8 @@ BOOL AllinoneWindow::AssignTribe(
 			{
 				CIV_INDEX civ = CIV_INDEX(index - 1);
 				StringId sid = isFemale ?
-					g_theCivilisationDB->GetLeaderNameFemale( civ ) :
-					g_theCivilisationDB->GetLeaderName( civ );
+					g_theCivilisationDB->Get(civ)->GetLeaderNameFemale():
+					g_theCivilisationDB->Get(civ)->GetLeaderNameMale();
 				MBCHAR leader[ dp_PNAMELEN + 1 ];
 				strncpy( leader, g_theStringDB->GetNameStr( sid ), dp_PNAMELEN);
 
@@ -2461,7 +2428,7 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 	
 	while(n) {
 		
-		if(m = g_netfunc->GetMessage()) {
+		if((m = g_netfunc->GetMessage())) {
 
 			
 			
@@ -2500,7 +2467,7 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 			}
 
 			
-			if ( m->GetCode() == NETFunc::Message::Code::ADDAIPLAYER )
+			if ( m->GetCode() == NETFunc::Message::ADDAIPLAYER )
 			{
 				nf_AIPlayer aiplayer;
 				aiplayer.Set( m->GetBodySize(), m->GetBody() );
@@ -2517,7 +2484,7 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 					FALSE );
 				Assert( success );
 			}
-			else if ( m->GetCode() == NETFunc::Message::Code::DELAIPLAYER )
+			else if ( m->GetCode() == NETFunc::Message::DELAIPLAYER )
 			{
 				
 				nf_AIPlayer aiplayer;
@@ -2725,7 +2692,8 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 					info->networkGUID,
 					sizeof(CivGuid) * k_MAX_PLAYERS);
 
-				for(sint32 i = 0; i < k_MAX_PLAYERS; i++) {
+				sint32 i;
+				for(i = 0; i < k_MAX_PLAYERS; i++) {
 					if(m_civGuids[i].guid == *g_network.GetGuid()) {
 						success = AssignTribe(
 							m_civGuids[i].civIndex + 1, 
@@ -2766,9 +2734,11 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 													 cancel,
 													 AUI_BUTTON_ACTION_EXECUTE,
 													 0 );
-					} else
-						
+					} else {
+#ifdef WIN32
 						PostMessage( g_ui->TheHWND(), WM_CLOSE, 0, 0 );
+#endif
+				}
 				}
 
 			}
@@ -2896,7 +2866,7 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 	
 	while(n) {
 		
-		if(m = g_netfunc->GetMessage()) {
+		if((m = g_netfunc->GetMessage())) {
 			
 			
 			g_netfunc->HandleMessage(m);
@@ -2987,8 +2957,8 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 					if ( m_mode == CONTINUE_JOIN && m_joinedGame && gotpacket )
 					{
 						
-						
-						for(sint32 i = 0; i < k_MAX_PLAYERS; i++) {
+						sint32 i;
+						for(i = 0; i < k_MAX_PLAYERS; i++) {
 							if(m_civGuids[i].guid == *g_network.GetGuid()) {
 								RequestTribe( m_civGuids[ i ].civIndex + 1 );
 								break;
@@ -3142,9 +3112,11 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 				FindWindow( NetShell::WINDOW_LOBBY );
 			g_netshell->GotoScreen( NetShell::SCREEN_LOBBY );
 			w->Update();
-		} else
-			
+		} else {
+#ifdef WIN32
 			PostMessage( g_ui->TheHWND(), WM_CLOSE, 0, 0 );
+#endif
+		}
 
 	}
 
@@ -3166,9 +3138,11 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 				cancel,
 				AUI_BUTTON_ACTION_EXECUTE,
 				0 );
-		} else
-			
+		} else {
+#ifdef WIN32	
 			PostMessage( g_ui->TheHWND(), WM_CLOSE, 0, 0 );
+#endif
+	}
 	}
 			
 	if(joinedgame && g_netfunc->GetStatus() == NETFunc::OK) {
@@ -3220,9 +3194,9 @@ AUI_ERRCODE AllinoneWindow::Idle( void )
 			
 			if ( m_receivedGuids )
 			{
+				sint32 i;
 				
-				
-				for(sint32 i = 0; i < k_MAX_PLAYERS; i++) {
+				for (i = 0; i < k_MAX_PLAYERS; i++) {
 					if(m_civGuids[i].guid == *g_network.GetGuid()) {
 						RequestTribe( m_civGuids[ i ].civIndex + 1 );
 						break;
@@ -3404,7 +3378,8 @@ void AllinoneWindow::UpdateDisplay( void )
 	if ( !m_createdExclusions ) CreateExclusions();
 
 	m_numAvailUnits = g_gamesetup.GetNumAvailUnits();
-	for ( sint32 i = 0; i < m_numAvailUnits; i++ )
+	sint32 i;
+	for ( i = 0; i < m_numAvailUnits; i++ )
 		if ( m_units[ i ] ) m_units[ i ]->SetState( g_gamesetup.GetUnit( i ) );
 
 	m_numAvailImprovements = g_gamesetup.GetNumAvailImprovements();
@@ -3491,7 +3466,8 @@ void AllinoneWindow::UpdateTribeSwitches( void )
 	}
 
 	spnewgametribescreen_enableTribes();
-	for ( sint32 i = 0; i < k_NS_MAX_PLAYERS; i++ )
+	sint32 i;
+	for ( i = 0; i < k_NS_MAX_PLAYERS; i++ )
 	{
 		
 		if ( tribeSlots[ i ].tribe != g_playersetup.GetTribe() )
@@ -3928,7 +3904,7 @@ void AllinoneWindow::AddAIPlayer( sint32 curCount )
 	if ( !OKToAddPlayers() ) return;
 
 	
-	sint32 newMaxNumHumans = g_gamesetup.GetMaxPlayers();
+	sint16 newMaxNumHumans = g_gamesetup.GetMaxPlayers();
 	sint32 maxPlayersTotal = k_NS_MAX_PLAYERS;
 	if(m_scenInfo.isScenario &&
 	   (m_scenInfo.m_startInfoType != (uint8)STARTINFOTYPE_NONE &&
@@ -3941,7 +3917,7 @@ void AllinoneWindow::AddAIPlayer( sint32 curCount )
 		--newMaxNumHumans;
 	Assert( newMaxNumHumans > 0 );
 	if ( !newMaxNumHumans ) newMaxNumHumans = 1;
-	g_gamesetup.SetSize( newMaxNumHumans );
+	g_gamesetup.SetSize(newMaxNumHumans);
 	UpdateGameSetup();
 
 	
@@ -3954,7 +3930,7 @@ void AllinoneWindow::AddAIPlayer( sint32 curCount )
 		key.len = 1;
 	}
 
-	if( key.buf[ key.len - 1 ] == 255 )
+	if( key.buf[ key.len - 1 ] == (char) 255 )
 		key.len++;
 	key.buf[ key.len - 1 ]++;
 	
@@ -4057,9 +4033,8 @@ void AllinoneWindow::PlayersListBoxAction::Execute(
 	if ( action != AUI_LISTBOX_ACTION_SELECT ) return;
 
 	ns_HPlayerListBox *listbox = (ns_HPlayerListBox *)control;
-
-	static tech_WLList<sint32> justSelectedList;
-	static tech_WLList<sint32> justDeselectedList;
+	tech_WLList<sint32>	justSelectedList;
+	tech_WLList<sint32>	justDeselectedList;
 	sint32 index;
 
 	listbox->WhatsChanged(justSelectedList,justDeselectedList);
@@ -4072,7 +4047,8 @@ void AllinoneWindow::PlayersListBoxAction::Execute(
 		FindControl(AllinoneWindow::CONTROL_CHATBOX);
 
 	ListPos position = justDeselectedList.GetHeadPosition();
-	for ( sint32 i = justDeselectedList.L(); i; i-- ) {
+	sint32 i;
+	for ( i = justDeselectedList.L(); i; i-- ) {
 		index = justDeselectedList.GetNext( position );
 		ns_HPlayerItem *item = (ns_HPlayerItem *)listbox->GetItemByIndex(index);
 		if ( !item->IsAI() )
@@ -4113,6 +4089,9 @@ void AllinoneWindow::PlayersListBoxAction::Execute(
 		s = (aui_Switch *)w->FindControl( w->CONTROL_PPTSWITCH );
 		s->SetState(k_PPT_PUBLIC);
 	}
+
+	justSelectedList.DeleteAll();
+	justDeselectedList.DeleteAll();
 }
 
 
@@ -4272,7 +4251,7 @@ void AllinoneWindow::KickButtonAction::Execute(
 		if ( item->IsAI() )
 		{
 			
-			sint32 newMaxNumHumans = g_gamesetup.GetMaxPlayers();
+			sint16 newMaxNumHumans = g_gamesetup.GetMaxPlayers();
 			sint32 maxPlayersTotal = k_NS_MAX_PLAYERS;
 			if(w->GetScenarioInfo()->isScenario &&
 			   (w->GetScenarioInfo()->m_startInfoType != (uint8)STARTINFOTYPE_NONE &&
@@ -4285,7 +4264,7 @@ void AllinoneWindow::KickButtonAction::Execute(
 				++newMaxNumHumans;
 			Assert( newMaxNumHumans <= k_NS_MAX_HUMANS );
 			if ( newMaxNumHumans > k_NS_MAX_HUMANS ) newMaxNumHumans = k_NS_MAX_HUMANS;
-			g_gamesetup.SetSize( newMaxNumHumans );
+			g_gamesetup.SetSize(newMaxNumHumans);
 			w->UpdateGameSetup();
 
 			w->UpdatePlayerButtons();
@@ -4941,18 +4920,22 @@ void AllinoneWindow::CancelButtonAction::Execute(
 			g_gamesetup.SetClosed( FALSE );
 			g_gamesetup.SetSize( k_NS_MAX_HUMANS );
 
-			
+#ifdef WIN32			
 			Sleep( k_PACKET_DELAY );
+#else
+			usleep( k_PACKET_DELAY );
+#endif
 			w->UpdateGameSetup();
 		}
 		g_netfunc->Leave();
 		LobbyWindow *w = (LobbyWindow *)(g_netshell->FindWindow( NetShell::WINDOW_LOBBY ));
 		g_netshell->GotoScreen( NetShell::SCREEN_LOBBY );
 		w->Update();
-
-	} else
-		
+	} else {
+#ifdef WIN32
 		PostMessage( g_ui->TheHWND(), WM_CLOSE, 0, 0 );
+#endif
+}
 }
 
 
@@ -5007,7 +4990,8 @@ void AllinoneWindow::SpitOutGameSetup( void )
 	
 
 	memset( moreinfo, 0, sizeof( moreinfo ) );
-	for ( sint32 i = 0; i < m_numAvailUnits; i++ )
+	sint32 i;
+	for ( i = 0; i < m_numAvailUnits; i++ )
 	{
 		if ( m_units[ i ] && m_units[ i ]->GetState() )
 		{
@@ -5241,7 +5225,7 @@ void AllinoneWindow::SpitOutGameSetup( void )
 	
 	{
 		displayedSomething = true;
-		AUI_ERRCODE errcode;
+		AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 		static ns_String mapsize( "strings.mapsize" );
 		static aui_StringTable mapsizestrings( &errcode, "strings.mapsizestrings" );
@@ -5328,12 +5312,11 @@ void AllinoneWindow::SpitOutGameSetup( void )
 		strncat( info, temp, biglen );
 
 		static ns_String startage( "strings.startage" );
-		static aui_StringTable startagestrings( &errcode, "strings.startagestrings" );
 		sprintf(
 			temp,
 			"%s %s\n",
 			startage.GetString(),
-			startagestrings.GetString( g_gamesetup.GetStartAge() ) );
+			g_theAgeDB->Get(g_gamesetup.GetStartAge())->GetNameText());
 		strncat( info, temp, biglen );
 
 		static ns_String endage( "strings.endage" );
@@ -5342,7 +5325,7 @@ void AllinoneWindow::SpitOutGameSetup( void )
 			temp,
 			"%s %s\n",
 			endage.GetString(),
-			startagestrings.GetString( g_gamesetup.GetEndAge() ) );
+			g_theAgeDB->Get(g_gamesetup.GetEndAge())->GetNameText());
 		strncat( info, temp, biglen );
 	}
 
@@ -5629,7 +5612,7 @@ void AllinoneWindow::HandicappingSwitchAction::Execute(
 	w->UpdateConfig();
 
 
-		g_gamesetup.SetHandicapping( hand );
+		g_gamesetup.SetHandicapping(static_cast<char>(hand));
 
 	
 	if ( !g_gamesetup.GetHandicapping() )
@@ -5768,7 +5751,7 @@ void AllinoneWindow::BloodlustSwitchAction::Execute(
 	sint32 bloodlust = ((aui_Switch *)control)->GetState();
 
 	{
-		g_gamesetup.SetBloodlust( bloodlust );
+		g_gamesetup.SetBloodlust(static_cast<char>(bloodlust));
 		w->UpdateGameSetup(true);
 	}
 }
@@ -5877,7 +5860,7 @@ void AllinoneWindow::PollutionSwitchAction::Execute(
 	sint32 poll = ((aui_Switch *)control)->GetState();
 
 	{
-		g_gamesetup.SetPollution( poll );
+		g_gamesetup.SetPollution(static_cast<char>(poll));
 		w->UpdateGameSetup(true);
 	}
 }
@@ -6083,8 +6066,8 @@ void AllinoneAgesCallback(
 
 	if ( w->GetMode() == w->CREATE )
 	{
-		g_gamesetup.SetStartAge( agesscreen_getStartAge() );
-		g_gamesetup.SetEndAge( agesscreen_getEndAge() );
+		g_gamesetup.SetStartAge(static_cast<char>(agesscreen_getStartAge()));
+		g_gamesetup.SetEndAge(static_cast<char>(agesscreen_getEndAge()));
 		w->UpdateGameSetup(true);
 	}
 }
@@ -6149,7 +6132,7 @@ void AllinoneMapSizeCallback(
 
 	if ( w->GetMode() == w->CREATE )
 	{
-		g_gamesetup.SetMapSize( spnewgamemapsizescreen_getMapSizeIndex() );
+		g_gamesetup.SetMapSize(static_cast<char>(spnewgamemapsizescreen_getMapSizeIndex()));
 		w->UpdateGameSetup(true);
 	}
 }
@@ -6355,12 +6338,12 @@ void AllinoneWorldTypeCallback(
 	{
 		sint32 val1, val2, val3, val4, val5, val6;
 		custommapscreen_getValues( val1, val2, val3, val4, val5, val6 );
-		g_gamesetup.SetWorldType1( val1 );
-		g_gamesetup.SetWorldType2( val2 );
-		g_gamesetup.SetWorldType3( val3 );
-		g_gamesetup.SetWorldType4( val4 );
-		g_gamesetup.SetWorldType5( val5 );
-		g_gamesetup.SetWorldType6( val6 );
+		g_gamesetup.SetWorldType1(static_cast<char>(val1));
+		g_gamesetup.SetWorldType2(static_cast<char>(val2));
+		g_gamesetup.SetWorldType3(static_cast<char>(val3));
+		g_gamesetup.SetWorldType4(static_cast<char>(val4));
+		g_gamesetup.SetWorldType5(static_cast<char>(val5));
+		g_gamesetup.SetWorldType6(static_cast<char>(val6));
 		w->UpdateGameSetup(true);
 	}
 }
@@ -6403,8 +6386,8 @@ void AllinoneDifficultyCallback(
 
 	if ( w->GetMode() == w->CREATE )
 	{
-		g_gamesetup.SetDifficulty1( spnewgamediffscreen_getDifficulty1() );
-		g_gamesetup.SetDifficulty2( spnewgamediffscreen_getDifficulty2() );
+		g_gamesetup.SetDifficulty1(static_cast<char>(spnewgamediffscreen_getDifficulty1()));
+		g_gamesetup.SetDifficulty2(static_cast<char>(spnewgamediffscreen_getDifficulty2()));
 		w->UpdateGameSetup(true);
 	}
 }
@@ -6527,7 +6510,7 @@ void AllinoneWindow::LockSwitchAction::Execute(
 		{
 			
 
-			g_gamesetup.SetSize( w->CurNumHumanPlayers() );
+			g_gamesetup.SetSize(static_cast<char>(w->CurNumHumanPlayers()));
 			dpEnableNewPlayers(g_netfunc->GetDP(), 0);
 			g_gamesetup.SetClosed( true );
 			w->UpdateGameSetup();
@@ -6541,7 +6524,7 @@ void AllinoneWindow::LockSwitchAction::Execute(
 			sint32 newMaxNumHumans = k_NS_MAX_PLAYERS - w->CurNumAiPlayers();
 			if ( newMaxNumHumans > k_NS_MAX_HUMANS )
 				newMaxNumHumans = k_NS_MAX_HUMANS;
-			g_gamesetup.SetSize( newMaxNumHumans );
+			g_gamesetup.SetSize(static_cast<char>(newMaxNumHumans));
 			dpEnableNewPlayers(g_netfunc->GetDP(), 1);
 			g_gamesetup.SetClosed( false );
 			w->UpdateGameSetup();

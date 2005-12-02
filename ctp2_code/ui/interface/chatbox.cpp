@@ -1,9 +1,9 @@
-
 //----------------------------------------------------------------------------
 //
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : user interface for chatbox
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -17,15 +17,17 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// - None
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
-// - added toggles for army and cell text graphic options. PFT, 07 Mar 05
-//
+// - Added toggles for army and cell text graphic options. PFT, 07 Mar 05
 //
 //----------------------------------------------------------------------------
+
 #include "c3.h"
 
 #include "aui_surface.h"
@@ -35,63 +37,41 @@
 #include "pixelutils.h"
 #include "primitives.h"
 #include "aui_ranger.h"
-
 #include "c3ui.h"
 #include "background.h"
 #include "c3_hypertextbox.h"
 #include "c3textfield.h"
-#include "tiledmap.h"
-
+#include "tiledmap.h"               // g_tiledMap
 #include "chatbox.h"
-
-#include "network.h"
-
-#include "SelItem.h"
-
+#include "network.h"                // g_network
+#include "SelItem.h"                // g_selected_item
 #include "newturncount.h"
-#include "TurnCnt.h"
+#include "TurnCnt.h"                // g_turn
 #include "civapp.h"
-#include "controlpanelwindow.h"
-#include "director.h"
-#include "radarmap.h"
+#include "controlpanelwindow.h"     // g_controlPanel
+#include "director.h"               // g_director
+#include "radarmap.h"               // g_radarMap
 #include "Civilisation.h"
-#include "player.h"
+#include "player.h"                 // g_player
 #include "SlicEngine.h"
-
 #include "radarwindow.h"
 #include "ctp2_Window.h"
-
-extern C3UI			*g_c3ui;
-extern ColorSet		*g_colorSet;
-extern Background	*g_background;
-extern TiledMap		*g_tiledMap;
-extern Network		g_network;
-extern SelectedItem	*g_selected_item;
-extern TurnCount	*g_turn;
-extern CivApp		*g_civApp;
-
-extern HWND			gHwnd;
-extern ControlPanelWindow *g_controlPanel;
-extern Director		*g_director;
-extern RadarMap		*g_radarMap;
-extern Player		**g_player;
-
+#include "colorset.h"               // g_colorSet
 #include "gamesounds.h"
-#include "soundmanager.h"
-extern SoundManager	*g_soundManager;
-
+#include "soundmanager.h"           // g_soundManager
 #include "XY_Coordinates.h"
-#include "World.h"
-extern World		*g_theWorld;
-
-#include "tiledmap.h"
-extern TiledMap		*g_tiledMap;
-
+#include "World.h"                  // g_theWorld;
+#include "tiledmap.h"               // g_tiledMap
 #include "gfx_options.h"
 
+extern MBCHAR       g_slic_filename[_MAX_PATH];
+extern BOOL         g_letUIProcess;
+extern C3UI			*g_c3ui;
+extern Background	*g_background;
+extern CivApp		*g_civApp;
+extern HWND			gHwnd;
+
 ChatBox				*g_chatBox = NULL;
-extern MBCHAR g_slic_filename[_MAX_PATH];
-extern BOOL g_letUIProcess;
 
 void ChatBox::Initialize(void)
 {
@@ -554,6 +534,18 @@ BOOL ChatWindow::CheckForEasterEggs(MBCHAR *s)
 		}
 	}
     else
+
+	if(!strncmp(s, "/ArmyName", 8)  && !g_network.IsActive()) {
+		
+        if(g_graphicsOptions->IsArmyNameOn()){
+			g_graphicsOptions->ArmyNameOff();
+        }
+		else
+            g_graphicsOptions->ArmyNameOn();
+	}
+
+    else
+
 	if(!strncmp(s, "/debugai", 8)  && !g_network.IsActive()) {
 		
         if(g_graphicsOptions->IsArmyTextOn()){

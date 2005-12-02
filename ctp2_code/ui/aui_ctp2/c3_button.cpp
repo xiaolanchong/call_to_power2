@@ -1,14 +1,35 @@
-
-
-
-
-
-
-
-
-
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : The civilization 3 button
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// - None
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
+#include "c3_button.h"
 
 #include "aui.h"
 #include "aui_ui.h"
@@ -19,18 +40,16 @@
 #include "aui_gamespecific.h"
 
 #include "c3ui.h"
-#include "c3_button.h"
 #include "c3textfield.h"
 #include "patternbase.h"
 #include "pattern.h"
 #include "primitives.h"
-#include "colorset.h"
+#include "colorset.h"               // g_colorSet
 
 #include "SlicEngine.h"
 
 extern C3UI			*g_c3ui;
 extern SlicEngine	*g_slicEngine;
-extern ColorSet		*g_colorSet;
 
 
 c3_Button::c3_Button(
@@ -40,9 +59,9 @@ c3_Button::c3_Button(
 	ControlActionCallback *ActionFunc,
 	void *cookie )
 	:
-	aui_Button( retval, id, ldlBlock, ActionFunc, cookie ),
 	aui_ImageBase( ldlBlock ),
 	aui_TextBase( ldlBlock, (MBCHAR *)NULL ),
+	aui_Button( retval, id, ldlBlock, ActionFunc, cookie ),
 	PatternBase(ldlBlock, NULL)
 {
 	Assert( AUI_SUCCESS(*retval) );
@@ -66,9 +85,9 @@ c3_Button::c3_Button(
 	ControlActionCallback *ActionFunc,
 	void *cookie )
 	:
-	aui_Button( retval, id, x, y, width, height, ActionFunc, cookie ),
 	aui_ImageBase( (sint32)0 ),
 	aui_TextBase( NULL ),
+	aui_Button( retval, id, x, y, width, height, ActionFunc, cookie ),
 	PatternBase(pattern)
 {
 	Assert( AUI_SUCCESS(*retval) );
@@ -233,9 +252,9 @@ c3_EditButton::c3_EditButton(
 	ControlActionCallback *ActionFunc,
 	void *cookie )
 	:
-	c3_Button( retval, id, ldlBlock, ActionFunc, cookie ),
 	aui_ImageBase( ldlBlock ),
-	aui_TextBase( ldlBlock, (MBCHAR *)NULL )
+	aui_TextBase( ldlBlock, (MBCHAR *)NULL ),
+	c3_Button( retval, id, ldlBlock, ActionFunc, cookie )
 {
 	Assert( AUI_SUCCESS(*retval) );
 	if ( !AUI_SUCCESS(*retval) ) return;
@@ -262,9 +281,9 @@ c3_EditButton::c3_EditButton(
 	ControlActionCallback *ActionFunc,
 	void *cookie )
 	:
-	c3_Button( retval, id, x, y, width, height, pattern, ActionFunc, cookie ),
 	aui_ImageBase( (sint32)0 ),
-	aui_TextBase( NULL )
+	aui_TextBase( NULL ),
+	c3_Button( retval, id, x, y, width, height, pattern, ActionFunc, cookie )
 {
 	Assert( AUI_SUCCESS(*retval) );
 	if ( !AUI_SUCCESS(*retval) ) return;
@@ -331,7 +350,7 @@ AUI_ERRCODE c3_EditButton::InitCommon( sint32 val, sint32 min, sint32 max )
 
 AUI_ERRCODE c3_EditButton::CreateFieldAndActions( MBCHAR *ldlBlock )
 {
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 	
 	aui_Ldl *theLdl = g_ui->GetLdl();

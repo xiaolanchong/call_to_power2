@@ -88,7 +88,6 @@
 #include "director.h"
 #include "RandGen.h"
 #include "Regard.h"
-#include "CivilisationDB.h"
 #include "CivilisationPool.h"
 #include "MessagePool.h"
 
@@ -118,7 +117,7 @@ extern TradeAstar g_theTradeAstar;
 Army Player::GetArmyList(uint32 army_id, BOOL &is_unknown_id)
 { 
 	Assert(FALSE);
-	return Army(0);
+	return Army();
 }
 
 void Player::GetArmyPos(const uint32 army_id, BOOL &is_unknown_id, MapPoint &p1)const

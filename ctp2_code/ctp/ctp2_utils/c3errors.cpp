@@ -2,7 +2,7 @@
 //
 // Project      : Call To Power 2
 // File type    : C++ source file
-// Description  :
+// Description  : Civilisation 3 error dialogs
 // Id           : $Id$
 //
 //----------------------------------------------------------------------------
@@ -18,11 +18,21 @@
 //
 // Compiler flags
 //
+// _DEBUG
+// - Generate debug version
+//
+// _BFR_
+// - Force CD checking when set (build final release).
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
+// - Added to the database error dialog the possibility to close the program.
+//   This dialog is also used for slic errors and therefore also very useful.
+//   (Aug 26th 2005 Martin Gühmann)
 //
+//----------------------------------------------------------------------------
 
 #include "c3.h"
 
@@ -50,10 +60,12 @@ void c3errors_FatalDialog(const char* module, const char* fmt, ...)
 	
 	Report("Fatal error.  Aborting.\n");
 
+#if defined(WIN32)
 #ifndef _DEBUG
 #ifndef _BFR_
 	sint32 *s = 0;
 	*s = 0;
+#endif
 #endif
 #endif
 	
@@ -77,7 +89,12 @@ void c3errors_FatalDialogFromDB(const char *module, const char *err, ...)
 	if (!g_theStringDB->GetText(str, &dbError))
 		c3errors_FatalDialog("string db", "%s missing from string db", err) ;
 
-    va_start(list, dbError) ;
+	// TODO: I've changed the second argument in the following from dbError (which made no sense)
+	//   into err.  I think that this is what was originally intended, but since the feature this
+	//   code implements is never actually used anywhere, I expect it makes little difference.
+	//   nevertheless, that this works should be checked at some point.  The same applies to the
+	//   next function (c3errors_ErrorDialogFromDB) - JJB
+	va_start(list, err) ;
 	vsprintf(str, dbError, list) ;
 	va_end(list) ;
 
@@ -87,10 +104,12 @@ void c3errors_FatalDialogFromDB(const char *module, const char *err, ...)
 	
 	Report("Fatal error.  Aborting.\n") ;
 
+#if defined(WIN32)
 #ifndef _DEBUG
 #ifndef _BFR_
 	sint32 *s = 0;
 	*s = 0;
+#endif
 #endif
 #endif
 
@@ -114,7 +133,7 @@ void c3errors_ErrorDialogFromDB(const char *module, const char *err, ...)
 	if (!g_theStringDB->GetText(str, &dbError))
 		c3errors_FatalDialog("string db", "%s missing from string db", err) ;
 
-    va_start(list, dbError) ;
+	va_start(list, err) ;
 	vsprintf(str, dbError, list) ;
 	va_end(list) ;
 
@@ -153,9 +172,13 @@ void c3errors_ErrorDialog(const char* module, const char* fmt, ...)
 
 	va_start(list, fmt);
 	vsprintf(szTmp, fmt, list);
+	char Tmp[2000];
+	sprintf(Tmp, "%s\n\nContinue?", szTmp);
 	va_end(list);
 
-	MessageBox(NULL, szTmp, szTitle, MB_OK | MB_ICONEXCLAMATION);
+	// TODO: Make it work with LPTSTR szTmp if it is worth the efforts at all.
+//	MessageBox(NULL, szTmp, szTitle, MB_OK | MB_ICONEXCLAMATION);
+	sint32 result = MessageBox(NULL, Tmp, szTitle, MB_YESNO | MB_ICONEXCLAMATION);
 	
 	DPRINTF(k_DBG_FIX, ("Error: %s, %s\n", szTitle, szTmp));
 
@@ -171,6 +194,10 @@ void c3errors_ErrorDialog(const char* module, const char* fmt, ...)
 		g_ui->AltTabIn();
 	}
 #endif
+
+	if(result == IDNO){
+		exit(1);
+	}
 
 	return;
 }

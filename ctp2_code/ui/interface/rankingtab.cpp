@@ -1,60 +1,60 @@
-
-//ranking.cpp
-
-//Pollution power graph added by Martin Gühmann on November the 2nd
-
-
-
-
-
-
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Multiplayer chat box
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// OLD_GRAPHS
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - Added pollution power graph (Nov 2nd 2003 Martin Gühmann)
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
-
-#include "aui_ldl.h"
-#include "ctp2_Window.h"
-#include "ctp2_button.h"
-#include "ctp2_listbox.h"
-#include "ctp2_listitem.h"
-#include "c3ui.h"
-#include "ctp2_dropdown.h"
-#include "ctp2_Static.h"
-#include "ctp2_listbox.h"
-
-
-#include "StrDB.h"
-
-
 #include "rankingtab.h"
 
-
-#include "linegraph.h"
-
-
-#include "aui_uniqueid.h"
-
-
-#include "player.h"
-
-
+#include "aui_ldl.h"
 #include "aui_stringtable.h"
-
-
-#include "colorset.h"
-
-
-#include "infowin.h"
-#include "TurnCnt.h"
-#include "gstypes.h"
-#include "Strengths.h"
+#include "aui_uniqueid.h"
+#include "c3ui.h"
 #include "CivilisationPool.h"
+#include "colorset.h"           // g_colorSet
+#include "ctp2_button.h"
+#include "ctp2_dropdown.h"
+#include "ctp2_listbox.h"
+#include "ctp2_listitem.h"
+#include "ctp2_Static.h"
+#include "ctp2_Window.h"
+#include "gstypes.h"
+#include "infowin.h"
+#include "linegraph.h"
+#include "player.h"
+#include "StrDB.h"              // g_theStringDB
+#include "Strengths.h"
+#include "TurnCnt.h"            // g_turn
 
 
 extern C3UI *g_c3ui;
-extern StringDB *g_theStringDB;
 extern PointerList<Player>      *g_deadPlayer;
-extern TurnCount				*g_turn; 
-extern ColorSet		*g_colorSet;
 
 static aui_StringTable	*s_stringTable;
 
@@ -68,14 +68,14 @@ RankingTab * RankingTab::s_current_ranking_tab = NULL;
 
 
 RankingTab::RankingTab(ctp2_Window *parent) :
+	m_infoGraph(static_cast<LineGraph *>(
+		aui_Ldl::GetObject("InfoDialog", "TabGroup.Tab3.TabPanel.InfoGraph"))),
 	m_rankingDropDown(static_cast<ctp2_DropDown*>(aui_Ldl::GetObject(
 		"InfoDialog.TabGroup.Tab3.TabPanel.RankSelect.Pulldown"))),
 	m_lineOrZeroSumButton(static_cast<ctp2_Button*>(
 		aui_Ldl::GetObject("InfoDialog.TabGroup.Tab3.TabPanel.LineOrZeroSum"))),
 	m_infoPlayerList(static_cast<ctp2_ListBox *>(
-		aui_Ldl::GetObject("InfoDialog", "TabGroup.Tab3.TabPanel.InfoPlayerList"))),
-	m_infoGraph(static_cast<LineGraph *>(
-		aui_Ldl::GetObject("InfoDialog", "TabGroup.Tab3.TabPanel.InfoGraph")))
+		aui_Ldl::GetObject("InfoDialog", "TabGroup.Tab3.TabPanel.InfoPlayerList")))
 {
 
 	
@@ -273,13 +273,13 @@ void RankingTab::CleanupGraph()
 	
 	if (m_infoGraphData)
 	{
-		for( sint32 i = 0 ; i < m_infoYCount ; i++ )
+		for (size_t i = 0 ; i < m_infoYCount; ++i)
 		{
 			delete m_infoGraphData[i];
-			m_infoGraphData[i] = NULL;
 		}
-		delete m_infoGraphData;
+		delete [] m_infoGraphData;
 		m_infoGraphData = NULL;
+        m_infoYCount    = 0;
 	}
 }
 
@@ -332,7 +332,7 @@ sint32 SetupRankingGraph(
 	
 	
 	BOOL dumpStrings = FALSE;
-	AUI_ERRCODE		errcode;
+	AUI_ERRCODE		errcode = AUI_ERRCODE_OK;
 
 	if (!s_stringTable) {
 		s_stringTable = new aui_StringTable( &errcode, "InfoStrings" );
@@ -383,7 +383,7 @@ sint32 SetupRankingGraph(
 	
 	if (!infoXCount) 
 	{
-		delete color;
+		delete [] color;
 		
 		pInfoGraph->RenderGraph();
 		return infoYCount;
@@ -546,7 +546,7 @@ sint32 SetupRankingGraph(
 	
 	pInfoGraph->RenderGraph();
 	
-	delete color;
+	delete [] color;
 
 	
 	

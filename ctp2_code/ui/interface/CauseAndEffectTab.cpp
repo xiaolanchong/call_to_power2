@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Empire manager main tab
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -32,6 +33,7 @@
 //   losses and production modifies pollution and pollution modifies crime.
 //   This means all the values are modified even if only a single slider
 //   is moved. Jul 7th 2005 Martin Gühmann
+// - Added preparations for city resource calculation replacement. (Aug 12th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -44,14 +46,18 @@
 #include "aui_ldl.h"
 #include "aui_region.h"
 #include "buildingutil.h"
+#include "c3math.h"                     // AsPercentage
 #include "c3slider.h"
-#include "colorset.h"
+#include "colorset.h"                   // g_colorSet
 #include "ctp2_button.h"
 #include "ctp2_spinner.h"
 #include "ctp2_Static.h"
 #include "ctp2_Tab.h"
+#include "DomesticManagementDialog.h"
+#include "governor.h"                   // To allow automatic slider optimization
 #include "GovernmentRecord.h"
 #include "Happy.h"	
+#include "network.h"
 #include "pixelutils.h"
 #include "player.h"
 #include "primitives.h"
@@ -60,13 +66,6 @@
 #include "UnitData.h"
 #include "UnitDynArr.h"
 #include "wonderutil.h"
-#include "DomesticManagementDialog.h"
-#include "network.h"
-#include "c3math.h"                     // AsPercentage
-
-#include "governor.h"                   // To allow automatic slider optimization
-
-extern ColorSet *g_colorSet;
 
 
 static sint32 k_ONE_FIVE__NEG_TWO_TWO_CONVERSION = 3;
@@ -102,16 +101,16 @@ m_foodHappinessIcon(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 
 m_detailsFoodTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Food.InformationDetails.Collected.Value"))),
-m_summaryFoodTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
-	"Food.InformationSummary.Collected.Value"))),
 m_detailsFoodCrime(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Food.InformationDetails.Crime.Value"))),
 m_detailsFoodConsumed(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Food.InformationDetails.Consumed.Value"))),
-m_summaryFoodConsumed(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
-	"Food.InformationSummary.Consumed.Value"))),
 m_detailsFoodStored(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Food.InformationDetails.Remainder.Value"))),
+m_summaryFoodTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
+	"Food.InformationSummary.Collected.Value"))),
+m_summaryFoodConsumed(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
+	"Food.InformationSummary.Consumed.Value"))),
 m_summaryFoodStored(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Food.InformationSummary.Remainder.Value"))),
 
@@ -128,18 +127,18 @@ m_productionHappinessIcon(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 
 m_detailsProductionTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Production.InformationDetails.Collected.Value"))),
-m_summaryProductionTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
-	"Production.InformationSummary.Collected.Value"))),
 m_detailsProductionCrime(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Production.InformationDetails.Crime.Value"))),
 m_detailsProductionUnitUpkeep(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Production.InformationDetails.Upkeep.Value"))),
 m_detailsProductionPublicWorks(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Production.InformationDetails.PublicWorks.Value"))),
-m_summaryProductionPublicWorks(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
-	"Production.InformationSummary.PublicWorks.Value"))),
 m_detailsProductionCityUse(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Production.InformationDetails.CityUse.Value"))),
+m_summaryProductionTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
+	"Production.InformationSummary.Collected.Value"))),
+m_summaryProductionPublicWorks(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
+	"Production.InformationSummary.PublicWorks.Value"))),
 m_summaryProductionCityUse(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Production.InformationSummary.CityUse.Value"))),
 
@@ -156,8 +155,6 @@ m_commerceHappinessIcon(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 
 m_detailsCommerceTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Commerce.InformationDetails.Collected.Value"))),
-m_summaryCommerceTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
-	"Commerce.InformationSummary.Collected.Value"))),
 m_detailsCommerceCrime(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Commerce.InformationDetails.Crime.Value"))),
 m_detailsCommerceWages(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
@@ -166,10 +163,12 @@ m_detailsCommerceBuildingUpkeep(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldl
 	"Commerce.InformationDetails.Upkeep.Value"))),
 m_detailsCommerceScience(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Commerce.InformationDetails.Science.Value"))),
-m_summaryCommerceScience(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
-	"Commerce.InformationSummary.Science.Value"))),
 m_detailsCommerceSavings(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Commerce.InformationDetails.Savings.Value"))),
+m_summaryCommerceTotal(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
+	"Commerce.InformationSummary.Collected.Value"))),
+m_summaryCommerceScience(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
+	"Commerce.InformationSummary.Science.Value"))),
 m_summaryCommerceSavings(static_cast<ctp2_Static*>(aui_Ldl::GetObject(ldlBlock,
 	"Commerce.InformationSummary.Savings.Value")))
 {
@@ -667,14 +666,20 @@ void CauseAndEffectTab::UpdateCities()
 		
 		static sint32 gold = 0;
 		
-		cityData->CalcHappiness(gold, false); 
 		cityData->CollectResources();
+#if defined(NEW_RESOURCE_PROCESS)
+		cityData->ProcessResources();
+		cityData->CalculateResources();
+		cityData->CalcPollution();
+		cityData->DoSupport(true);
+#else
+		cityData->ProcessProduction(true);
 		cityData->DoSupport(true);
 		cityData->SplitScience(true);
 		cityData->ProcessFood();
 		cityData->CollectOtherTrade(true, false);
-		cityData->ProcessProduction(true);
-		
+#endif
+		cityData->CalcHappiness(gold, false);
 		cityData->EatFood();
 		cityData->CalculateGrowthRate();
 	}

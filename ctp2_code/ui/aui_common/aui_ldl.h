@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------------
 //
 // Project      : Call To Power 2
-// File type    : C++ header file
-// Description  : 
+// File type    : C++ header
+// Description  : Activision User Interface - ldl handling
 // Id           : $Id$
 //
 //----------------------------------------------------------------------------
@@ -17,13 +17,17 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// - None
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
+// - Fixed memory leaks.
 //
 //----------------------------------------------------------------------------
+
 #ifndef __AUI_LDL_H__
 #define __AUI_LDL_H__
 
@@ -94,12 +98,12 @@ public:
 	
 	aui_Ldl(
 		AUI_ERRCODE *retval,
-		MBCHAR *ldlFilename );
+		MBCHAR const * ldlFilename );
 	virtual ~aui_Ldl();
 
 protected:
 	aui_Ldl() : aui_Base() {}
-	AUI_ERRCODE InitCommon( MBCHAR *ldlFilename );
+	AUI_ERRCODE InitCommon( MBCHAR const * ldlFilename );
 
 public:
 	
@@ -132,7 +136,7 @@ public:
 	
 	
 	
-	static AUI_ERRCODE	BuildHierarchyFromLeaf(ldl_datablock *dataBlock);
+	static AUI_ERRCODE	BuildHierarchyFromLeaf(ldl_datablock *dataBlock, aui_Region *region);
 	
 	
 	

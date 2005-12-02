@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : SLIC functions
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -12,6 +13,13 @@
 //
 // This material has been developed at apolyton.net by the Apolyton CtP2 
 // Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// CTP1_TRADE
+// - Creates an executable with trade like in CTP1. Currently broken.
 //
 //----------------------------------------------------------------------------
 //
@@ -35,9 +43,9 @@
 //   - GetUnitFromCargo: Gets the i'th unit a unit is carrying.
 //   - GetContinent:     Gets the continent ID of an location.
 //   - IsWater:          Gets whether a location is water.
-// - ArmyIsValid	: Added reading of the argument - to make a valid result 
+// - ArmyIsValid    : Added reading of the argument - to make a valid result 
 //                    possible.
-// - GrantAdvance	: Added input checks and an (optional) reason argument.
+// - GrantAdvance   : Added input checks and an (optional) reason argument.
 // - Ambiguous sqrt resolved.
 // - CreateUnit function doesn't crash anymore if the unit type argument
 //   represents an invalid unit type. - Feb. 24th 2005 Martin Gühmann
@@ -46,6 +54,8 @@
 // - Added AddSlaves function modelled after the AddPops function.
 // - Improved argument checking of Get<Type> functions.
 // - AOM facilitation: set player[0] to the recipient when undefined.
+// - Replaced old civilisation database by new one. (Aug 20th 2005 Martin Gühmann)
+// - Removed the old endgame database. (Aug 29th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -115,11 +125,9 @@
 #include "AgreementPool.h"
 #include "net_action.h"
 #include "net_info.h"
-#include "EndGameDB.h"
 #include "MaterialPool.h"
-#include "SpriteStateDB.h"
 #include "SoundRecord.h"
-#include "CivilisationDB.h"
+#include "CivilisationRecord.h"
 #include "civ3_main.h"
 #include "GameEventManager.h"
 #include "GameEventArgList.h"
@@ -164,7 +172,6 @@ extern FilenameDB	*g_theMessageIconFileDB;
 extern GreatLibrary *g_greatLibrary;
 extern AttractWindow *g_attractWindow;
 extern SoundManager *g_soundManager;
-extern CivilisationDatabase *g_theCivilisationDB;
 extern Pollution *		g_thePollution;
 
 #define k_MESSAGE_TYPE_HASH_SIZE 16
@@ -220,21 +227,20 @@ void SlicArgList::AddArg(SA_TYPE type, SlicSymbolData *symbol)
 //                                   Pos, String, StringId
 //
 //----------------------------------------------------------------------------
-
 BOOL SlicArgList::GetInt(sint32 arg, sint32 &value)
 {
 	Assert(arg < m_numArgs);
- 	if (m_argType[arg] == SA_TYPE_INT) 
-    {
+	if (m_argType[arg] == SA_TYPE_INT)
+	{
 		value = m_argValue[arg].m_int;
-        return TRUE;
-	} 
-    else if ((m_argType[arg] == SA_TYPE_INT_VAR) ||
-             (m_argType[arg] == SA_TYPE_BUILTIN)
-            )
-    {
+		return TRUE;
+	}
+	else if ((m_argType[arg] == SA_TYPE_INT_VAR) ||
+			 (m_argType[arg] == SA_TYPE_BUILTIN)
+			)
+	{
 		return m_argValue[arg].m_symbol &&
-               m_argValue[arg].m_symbol->GetIntValue(value);
+		       m_argValue[arg].m_symbol->GetIntValue(value);
 	} 
 	return FALSE;
 }
@@ -244,10 +250,10 @@ BOOL SlicArgList::GetUnit(sint32 arg, Unit &u)
 	Assert(arg < m_numArgs);
 	if ((m_argType[arg] == SA_TYPE_INT_VAR) ||
 	    (m_argType[arg] == SA_TYPE_BUILTIN) 
-       )
-    {
+	   )
+	{
 		return m_argValue[arg].m_symbol &&
-               m_argValue[arg].m_symbol->GetUnit(u);
+		       m_argValue[arg].m_symbol->GetUnit(u);
 	}
 	return FALSE;
 }
@@ -257,10 +263,10 @@ BOOL SlicArgList::GetArmy(sint32 arg, Army &a)
 	Assert(arg < m_numArgs);
 	if ((m_argType[arg] == SA_TYPE_INT_VAR) ||
 	    (m_argType[arg] == SA_TYPE_BUILTIN)
-       ) 
-    {
+	   )
+	{
 		return m_argValue[arg].m_symbol &&
-               m_argValue[arg].m_symbol->GetArmy(a);
+		       m_argValue[arg].m_symbol->GetArmy(a);
 	}
 	return FALSE;
 }
@@ -270,10 +276,10 @@ BOOL SlicArgList::GetCity(sint32 arg, Unit &city)
 	Assert(arg < m_numArgs);
 	if ((m_argType[arg] == SA_TYPE_INT_VAR) ||
 	    (m_argType[arg] == SA_TYPE_BUILTIN) 
-       )
-    {
+	   )
+	{
 		return m_argValue[arg].m_symbol &&
-               m_argValue[arg].m_symbol->GetCity(city);
+		       m_argValue[arg].m_symbol->GetCity(city);
 	}
 	return FALSE;
 }
@@ -283,10 +289,10 @@ BOOL SlicArgList::GetPos(sint32 arg, MapPoint &pos)
 	Assert(arg < m_numArgs);
 	if ((m_argType[arg] == SA_TYPE_INT_VAR) ||
 	    (m_argType[arg] == SA_TYPE_BUILTIN)
-       ) 
-    {
+	   )
+	{
 		return m_argValue[arg].m_symbol &&
-               m_argValue[arg].m_symbol->GetPos(pos);
+		       m_argValue[arg].m_symbol->GetPos(pos);
 	}
 	return FALSE;
 }
@@ -294,18 +300,18 @@ BOOL SlicArgList::GetPos(sint32 arg, MapPoint &pos)
 BOOL SlicArgList::GetPlayer(sint32 arg, sint32 &value)
 {
 	Assert(arg < m_numArgs);
-	if (m_argType[arg] == SA_TYPE_INT) 
-    {
+	if (m_argType[arg] == SA_TYPE_INT)
+	{
 		value = m_argValue[arg].m_int;
-        return TRUE;
-	} 
-    else if ((m_argType[arg] == SA_TYPE_INT_VAR) ||
-             (m_argType[arg] == SA_TYPE_BUILTIN)
-            )
-    {
+		return (value >= 0) && (value < k_MAX_PLAYERS);
+	}
+	else if ((m_argType[arg] == SA_TYPE_INT_VAR) ||
+	         (m_argType[arg] == SA_TYPE_BUILTIN)
+	        )
+	{
 		return m_argValue[arg].m_symbol &&
-               m_argValue[arg].m_symbol->GetPlayer(value);
-	} 
+		       m_argValue[arg].m_symbol->GetPlayer(value);
+	}
 	return FALSE;
 }
 
@@ -318,7 +324,7 @@ BOOL SlicArgList::GetString(sint32 arg, char *&value)
 	{
 		value = const_cast<char *>(m_argValue[arg].m_symbol->GetName());
 		return TRUE;
-	} 
+	}
 	return FALSE;
 }
 
@@ -327,7 +333,7 @@ BOOL SlicArgList::GetStringId(sint32 arg, StringId &id) {
 	if(m_argType[arg] == SA_TYPE_STRING) {
 		id = m_argValue[arg].m_int;
 		return TRUE;
-	} 
+	}
 	return FALSE;
 }
 
@@ -430,7 +436,7 @@ GameEventArgList *SlicArgList::CreateGameEventArgs(GAME_EVENT ev)
 	return newArgs;
 }
 
-SlicFunc::SlicFunc(char *name, SLIC_FUNC_RET_TYPE type)
+SlicFunc::SlicFunc(char const * name, SLIC_FUNC_RET_TYPE type)
 {
 	m_type = type;
 	m_name = new char[strlen(name) + 2];
@@ -441,8 +447,7 @@ SlicFunc::SlicFunc(char *name, SLIC_FUNC_RET_TYPE type)
 
 SlicFunc::~SlicFunc()
 {
-	if(m_name)
-		delete [] m_name;
+	delete [] m_name;
 }
 
 //----------------------------------------------------------------------------
@@ -464,7 +469,6 @@ SlicFunc::~SlicFunc()
 //              the arguments.
 //
 //----------------------------------------------------------------------------
-
 SFN_ERROR Slic_PrintInt::Call(SlicArgList *args)
 {
 	if(args->m_numArgs != 1)
@@ -541,10 +545,10 @@ SFN_ERROR Slic_AddMessage::Call(SlicArgList *args)
 									 g_slicEngine->GetContext());
 	obj->AddRecipient(recip);
 	obj->CopyFromBuiltins();
-    if (obj->GetNumPlayers() == 0)
-    {
-        obj->AddPlayer(recip);
-    }
+	if (obj->GetNumPlayers() == 0)
+	{
+		obj->AddPlayer(recip);
+	}
 	g_slicEngine->Execute(obj);
 
 	return SFN_ERROR_OK;
@@ -581,10 +585,10 @@ SFN_ERROR Slic_Message::Call(SlicArgList *args)
 									 g_slicEngine->GetContext());
 	obj->AddRecipient(recip);
 	obj->CopyFromBuiltins();
-    if (obj->GetNumPlayers() == 0)
-    {
-        obj->AddPlayer(recip);
-    }
+	if (obj->GetNumPlayers() == 0)
+	{
+		obj->AddPlayer(recip);
+	}
 	g_slicEngine->Execute(obj);
 
 	return SFN_ERROR_OK;
@@ -1216,7 +1220,7 @@ SFN_ERROR Slic_Kill::Call(SlicArgList *args)
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
 
-	if(message == Message(0))
+	if(message == Message())
 		return SFN_ERROR_NOT_IN_BUTTON;
 
 	g_slicEngine->KillCurrentMessage();
@@ -1231,7 +1235,7 @@ SFN_ERROR Slic_MinimizeAction::Call(SlicArgList *args)
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
 
-	if(message == Message(0))
+	if(message == Message())
 		return SFN_ERROR_NOT_IN_BUTTON;
 
 	g_slicEngine->AddCurrentMessage();
@@ -1430,7 +1434,7 @@ SFN_ERROR Slic_Accept::Call(SlicArgList *args)
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
 
-	if(message == Message(0))
+	if(message == Message())
 		return SFN_ERROR_NOT_IN_BUTTON;
 
 	
@@ -1451,7 +1455,7 @@ SFN_ERROR Slic_Reject::Call(SlicArgList *args)
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
 
-	if(message == Message(0))
+	if(message == Message())
 		return SFN_ERROR_NOT_IN_BUTTON;
 
 	
@@ -1597,7 +1601,7 @@ SFN_ERROR Slic_Research::Call(SlicArgList *args)
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
 
-	if(message == Message(0))
+	if(message == Message())
 		return SFN_ERROR_NOT_IN_BUTTON;
 
 	sint32 player = message.GetOwner();
@@ -1758,7 +1762,7 @@ SFN_ERROR Slic_SetGovernment::Call(SlicArgList *args)
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
 
-	if(message == Message(0))
+	if(message == Message())
 		return SFN_ERROR_NOT_IN_BUTTON;
 
 	sint32 player = message.GetOwner();
@@ -1817,7 +1821,7 @@ SFN_ERROR Slic_StealSpecificAdvance::Call(SlicArgList *args)
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
 
-	if(message == Message(0))
+	if(message == Message())
 		return SFN_ERROR_NOT_IN_BUTTON;
 
 	AdvanceType adv = message.GetSelectedAdvance();
@@ -2010,7 +2014,7 @@ SFN_ERROR Slic_SendTradeBid::Call(SlicArgList *args)
 								   15);
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
-	if(message != Message(0)) {
+	if(message != Message()) {
 		g_slicEngine->KillCurrentMessage();
 	}
 	return SFN_ERROR_OK;
@@ -2045,7 +2049,7 @@ SFN_ERROR Slic_AcceptTradeBid::Call(SlicArgList *args)
 									 context->GetGold(0));
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
-	if(message != Message(0)) {
+	if(message != Message()) {
 		g_slicEngine->KillCurrentMessage();
 	}
 	return SFN_ERROR_OK;
@@ -2080,7 +2084,7 @@ SFN_ERROR Slic_RejectTradeBid::Call(SlicArgList *args)
 									 context->GetGold(0));
 	Message message;
 	g_slicEngine->GetCurrentMessage(message);
-	if(message != Message(0)) {
+	if(message != Message()) {
 		g_slicEngine->KillCurrentMessage();
 	}
 
@@ -2931,7 +2935,7 @@ SFN_ERROR Slic_PlayerWagesExp::Call(SlicArgList *args)
 	if(!args->GetPlayer(0, player))
 		return SFN_ERROR_TYPE_ARGS;
 
-	m_result.m_int = g_player[player]->GetWagesExpectation();
+	m_result.m_int = static_cast<sint32>(g_player[player]->GetWagesExpectation());
 
 	return SFN_ERROR_OK;
 }
@@ -2945,7 +2949,7 @@ SFN_ERROR Slic_PlayerWorkdayExp::Call(SlicArgList *args)
 	if(!args->GetPlayer(0, player))
 		return SFN_ERROR_TYPE_ARGS;
 
-	m_result.m_int = g_player[player]->GetWorkdayExpectation();
+	m_result.m_int = static_cast<sint32>(g_player[player]->GetWorkdayExpectation());
 
 	return SFN_ERROR_OK;
 }
@@ -2959,7 +2963,7 @@ SFN_ERROR Slic_PlayerRationsExp::Call(SlicArgList *args)
 	if(!args->GetPlayer(0, player))
 		return SFN_ERROR_TYPE_ARGS;
 
-	m_result.m_int = g_player[player]->GetRationsExpectation();
+	m_result.m_int = static_cast<sint32>(g_player[player]->GetRationsExpectation());
 
 	return SFN_ERROR_OK;
 }
@@ -3307,11 +3311,11 @@ SFN_ERROR Slic_CreateUnit::Call(SlicArgList *args)
 		Unit unit;
 		if(g_player[owner]) {
 			unit = g_player[owner]->CreateUnit(type, upos,
-													Unit(0),
+													Unit(),
 													FALSE,
 													CAUSE_NEW_ARMY_SCENARIO);
 		}
-		if(unit.m_id == (0)) {
+		if(unit.m_id == 0) {
 			m_result.m_int = 0;
 		} else {
 			m_result.m_int = 1;
@@ -3988,15 +3992,7 @@ SFN_ERROR Slic_GrantAdvance::Call(SlicArgList *args)
 	}
 
 	PLAYER_INDEX	player;
-	if (args->GetPlayer(0, player))
-	{
-		if ((player < 0) || (player >= k_MAX_PLAYERS))
-		{
-			return SFN_ERROR_OUT_OF_RANGE;
-		}
-
-	}
-	else
+	if (!args->GetPlayer(0, player))
 	{
 		return SFN_ERROR_TYPE_ARGS;
 	}
@@ -4254,16 +4250,12 @@ SFN_ERROR Slic_GameOver::Call(SlicArgList *args)
 		return SFN_ERROR_NUM_ARGS;
 
 	sint32 player;
-	if(!args->GetInt(0, player))
+	if(!args->GetPlayer(0, player))
 		return SFN_ERROR_TYPE_ARGS;
 
 	sint32 reason;
 	if(!args->GetInt(1, reason))
 		return SFN_ERROR_TYPE_ARGS;
-
-	if(!g_player[player]) {
-		return SFN_ERROR_DEAD_PLAYER;
-	}
 
 	if(reason == 0) {
 		g_player[player]->GameOver(GAME_OVER_LOST_OUT_OF_TIME, -1);
@@ -5325,6 +5317,9 @@ SFN_ERROR Slic_IsWonderInBuildList::Call(SlicArgList *args)
 
 SFN_ERROR Slic_IsEndgameInBuildList::Call(SlicArgList *args)
 {
+	return SFN_ERROR_BAD_FUNCTION;
+#if 0
+// Endgame now building wonder
 	if(args->m_numArgs != 2)
 		return SFN_ERROR_NUM_ARGS;
 
@@ -5351,6 +5346,7 @@ SFN_ERROR Slic_IsEndgameInBuildList::Call(SlicArgList *args)
 		}
 	}
 	return SFN_ERROR_OK;
+#endif
 }
 
 SFN_ERROR Slic_IsUnitAtHead::Call(SlicArgList *args)
@@ -5502,6 +5498,9 @@ SFN_ERROR Slic_AddWonderToBuildList::Call(SlicArgList *args)
 
 SFN_ERROR Slic_AddEndgameToBuildList::Call(SlicArgList *args)
 {
+	return SFN_ERROR_BAD_FUNCTION;
+#if 0
+// Endgame now building wonder
 	if(args->m_numArgs != 2)
 		return SFN_ERROR_NUM_ARGS;
 
@@ -5521,6 +5520,7 @@ SFN_ERROR Slic_AddEndgameToBuildList::Call(SlicArgList *args)
 
 	city.BuildEndGame(type);
 	return SFN_ERROR_OK;
+#endif
 }
 
 SFN_ERROR Slic_KillUnitFromBuildList::Call(SlicArgList *args)
@@ -5634,6 +5634,9 @@ SFN_ERROR Slic_KillWonderFromBuildList::Call(SlicArgList *args)
 
 SFN_ERROR Slic_KillEndgameFromBuildList::Call(SlicArgList *args)
 {
+	return SFN_ERROR_BAD_FUNCTION;
+#if 0
+// Endgame now building wonder
 	if(args->m_numArgs != 2)
 		return SFN_ERROR_NUM_ARGS;
 
@@ -5665,6 +5668,7 @@ SFN_ERROR Slic_KillEndgameFromBuildList::Call(SlicArgList *args)
 		}
 	}
 	return SFN_ERROR_OK;
+#endif
 }
 
 SFN_ERROR Slic_SetPW::Call(SlicArgList *args)
@@ -5894,7 +5898,7 @@ SFN_ERROR Slic_PlayerCivilization::Call(SlicArgList *args)
 
 SFN_ERROR Slic_CivilizationIndex::Call(SlicArgList *args)
 {
-	m_result.m_int = 0;
+	m_result.m_int = -1;
 	if(args->m_numArgs != 1)
 		return SFN_ERROR_NUM_ARGS;
 
@@ -5902,14 +5906,11 @@ SFN_ERROR Slic_CivilizationIndex::Call(SlicArgList *args)
 	if(!args->GetString(0, civName))
 		return SFN_ERROR_TYPE_ARGS;
 
-	sint32 i;
-	for(i = 0; i < g_theCivilisationDB->m_nRec; i++) {
-		const char *dbName = g_theStringDB->GetIdStr(g_theCivilisationDB->Get(i)->m_name);
-		if(!stricmp(dbName, civName)) {
-			m_result.m_int = i;
-			return SFN_ERROR_OK;
-		}
+	m_result.m_int = g_theCivilisationDB->FindRecordNameIndex(civName);
+	if(m_result.m_int > -1){
+		return SFN_ERROR_OK;
 	}
+
 	return SFN_ERROR_CIV_NOT_FOUND;
 }
 
@@ -6281,12 +6282,8 @@ SFN_ERROR Slic_Distance::Call(SlicArgList *args)
 	if(!args->GetPos(1, p2))
 		return SFN_ERROR_TYPE_ARGS;
 
-#if defined(ACTIVISIION_ORIGINAL)
-	m_result.m_int = (sint32)sqrt(MapPoint::GetSquaredDistance(p1, p2));
-#else
 	m_result.m_int = static_cast<sint32>
 		(sqrt(static_cast<double>(MapPoint::GetSquaredDistance(p1, p2))));
-#endif
 	return SFN_ERROR_OK;
 }
 
@@ -6509,7 +6506,7 @@ SFN_ERROR Slic_ChangeGlobalRegard::Call(SlicArgList *args)
 						delta, 
 						REGARD_EVENT_SCENARIO, 
 						explain,
-						duration);
+						static_cast<sint16>(duration));
 		}
 	}
 
@@ -6861,7 +6858,6 @@ SFN_ERROR Slic_CityHasWonder::Call(SlicArgList *args)
 //              army is invalid, 0 (false) is returned.
 //
 //----------------------------------------------------------------------------
-
 SFN_ERROR Slic_ArmyIsValid::Call(SlicArgList *args)
 {
 	m_result.m_int = 0;
@@ -6897,7 +6893,6 @@ SFN_ERROR Slic_ArmyIsValid::Call(SlicArgList *args)
 //              disaster expected for a long time) is returned. 
 //
 //----------------------------------------------------------------------------
-
 SFN_ERROR Slic_GetRoundsToNextDisaster::Call(SlicArgList *args)
 {
 	if(args->m_numArgs != 0)
@@ -6931,7 +6926,6 @@ SFN_ERROR Slic_GetRoundsToNextDisaster::Call(SlicArgList *args)
 //              information is available, 0 (no pollution) is returned.
 //
 //----------------------------------------------------------------------------
-
 SFN_ERROR Slic_GetCurrentPollutionLevel::Call(SlicArgList *args)
 {
 	if(args->m_numArgs != 0)

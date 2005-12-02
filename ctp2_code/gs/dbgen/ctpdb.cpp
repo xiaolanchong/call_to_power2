@@ -18,7 +18,14 @@
 //
 // Compiler flags
 //
-// -None
+// _DEBUG
+// - Generate debug version when set.
+//
+// HAVE_UNISTD_H
+//
+// WIN32
+//
+// _MAX_PATH
 //
 //----------------------------------------------------------------------------
 //
@@ -80,7 +87,10 @@ static int copy_file(char *srcFName, char *dstFName)
 
 	Assert(inFile);
 	if (!inFile)
+	{
+		fprintf(stderr, "dbgen: file '%s' not found", srcFName);
 		return -1;
+	}
 
 	FILE *outFile = fopen(dstFName, "w");
 	Assert(outFile);
@@ -267,7 +277,6 @@ void db_end_record(char *name)
 {
 	char filename[1024];
 	FILE *outfile = NULL;
-
 	
 	sprintf(filename, "%s%s%sRecord.h.new",
 	        db_get_code_directory(), FILE_SEP, name);
@@ -310,7 +319,6 @@ void db_end_record(char *name)
 
 	delete g_record;
 	g_record = NULL;
-
 }
 
 void db_make_int_db(char *name)

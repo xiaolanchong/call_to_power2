@@ -1,31 +1,31 @@
 # Microsoft Developer Studio Project File - Name="ctp2" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
-# ** NICHT BEARBEITEN **
+# ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Application" 0x0101
 
 CFG=CTP2 - WIN32 RELEASE
-!MESSAGE Dies ist kein gültiges Makefile. Zum Erstellen dieses Projekts mit NMAKE
-!MESSAGE verwenden Sie den Befehl "Makefile exportieren" und führen Sie den Befehl
+!MESSAGE This is not a valid makefile. To build this project using NMAKE,
+!MESSAGE use the Export Makefile command and run
 !MESSAGE 
 !MESSAGE NMAKE /f "civctp.mak".
 !MESSAGE 
-!MESSAGE Sie können beim Ausführen von NMAKE eine Konfiguration angeben
-!MESSAGE durch Definieren des Makros CFG in der Befehlszeile. Zum Beispiel:
+!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
 !MESSAGE NMAKE /f "civctp.mak" CFG="CTP2 - WIN32 RELEASE"
 !MESSAGE 
-!MESSAGE Für die Konfiguration stehen zur Auswahl:
+!MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "ctp2 - Win32 Release" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "ctp2 - Win32 Debug" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "ctp2 - Win32 Test" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "ctp2 - Win32 NDebug" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "ctp2 - Win32 Final" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "ctp2 - Win32 Debug Browse" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "ctp2 - Win32 Optimized Test" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "ctp2 - SDL Debug" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "ctp2 - SDL Final" (basierend auf  "Win32 (x86) Application")
+!MESSAGE "ctp2 - Win32 Release" (based on "Win32 (x86) Application")
+!MESSAGE "ctp2 - Win32 Debug" (based on "Win32 (x86) Application")
+!MESSAGE "ctp2 - Win32 Test" (based on "Win32 (x86) Application")
+!MESSAGE "ctp2 - Win32 NDebug" (based on "Win32 (x86) Application")
+!MESSAGE "ctp2 - Win32 Final" (based on "Win32 (x86) Application")
+!MESSAGE "ctp2 - Win32 Debug Browse" (based on "Win32 (x86) Application")
+!MESSAGE "ctp2 - Win32 Optimized Test" (based on "Win32 (x86) Application")
+!MESSAGE "ctp2 - SDL Debug" (based on "Win32 (x86) Application")
+!MESSAGE "ctp2 - SDL Final" (based on "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -216,7 +216,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy for Remote Debugging
-PostBuild_Cmds=if                                   exist                                   R:\ctp2_project\ctp2_code\ctp\CivCTP_dbg.exe                                   copy                                   C:\src\ctp2_project\ctp2_code\ctp\CivCTP_dbg.exe                                   R:\ctp2_project\ctp2_code\ctp\                                  	rem           if                                   exist                                   R:\ctp2_project\ctp2_code\ctp\CivCTP_dbg.map                                   copy                                   C:\src\ctp2_project\ctp2_code\ctp\CivCTP_dbg.map                                   R:\ctp2_project\ctp2_code\ctp\ 
+PostBuild_Cmds=if                                                exist                                                R:\ctp2_project\ctp2_code\ctp\CivCTP_dbg.exe                                                copy                                                C:\src\ctp2_project\ctp2_code\ctp\CivCTP_dbg.exe                                                R:\ctp2_project\ctp2_code\ctp\                                               	rem                        if                                                exist                                                R:\ctp2_project\ctp2_code\ctp\CivCTP_dbg.map                                                copy                                                C:\src\ctp2_project\ctp2_code\ctp\CivCTP_dbg.map                                                R:\ctp2_project\ctp2_code\ctp\ 
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
@@ -691,32 +691,6 @@ SOURCE=..\gfx\spritesys\Anim.h
 # Begin Source File
 
 SOURCE=..\gfx\spritesys\BattleViewActor.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-# ADD BASE CPP /FAcs
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -868,14 +842,6 @@ SOURCE=..\gfx\spritesys\SpriteState.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\gfx\spritesys\SpriteStateDB.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gfx\spritesys\SpriteStateDB.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\gfx\spritesys\spriteutils.cpp
 # End Source File
 # Begin Source File
@@ -985,32 +951,6 @@ SOURCE=..\gfx\tilesys\tiledmap.h
 # Begin Source File
 
 SOURCE=..\gfx\tilesys\tiledraw.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-# ADD BASE CPP /FAcs
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -1138,22 +1078,6 @@ SOURCE=..\gfx\gfx_utils\Queue.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\gs\database\CivilisationDB.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\CivilisationDB.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\CivilisationRec.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\CivilisationRec.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\gs\database\conceptDB.cpp
 # End Source File
 # Begin Source File
@@ -1183,26 +1107,6 @@ SOURCE=..\gs\database\DiffDB.cpp
 # Begin Source File
 
 SOURCE=..\gs\database\DiffDB.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\EndGameDB.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\EndGameDB.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\EndGameRecord.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\EndGameRecord.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\EndGameToken.h
 # End Source File
 # Begin Source File
 
@@ -1238,22 +1142,6 @@ SOURCE=..\gs\database\highscoredb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\gs\database\InstDB.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\InstDB.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\InstRec.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\InstRec.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\gs\database\MapDB.cpp
 # End Source File
 # Begin Source File
@@ -1279,14 +1167,6 @@ SOURCE=..\gs\database\MovieDB.cpp
 # Begin Source File
 
 SOURCE=..\gs\database\MovieDB.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\OrderDB.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\OrderDB.h
 # End Source File
 # Begin Source File
 
@@ -1334,38 +1214,7 @@ SOURCE=..\gs\database\Rec.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\gs\database\RiskDB.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\gs\database\RiskDB.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\gs\database\StrDB.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -1474,29 +1323,6 @@ SOURCE=..\gs\gameobj\ArmyData.h
 # Begin Source File
 
 SOURCE=..\gs\gameobj\ArmyEvent.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -1857,29 +1683,6 @@ SOURCE=..\gs\gameobj\Order.h
 # Begin Source File
 
 SOURCE=..\gs\gameobj\Player.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -2011,10 +1814,6 @@ SOURCE=..\gs\gameobj\TerrImprovePool.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\gs\gameobj\TileVal.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\gs\gameobj\TopTen.cpp
 # End Source File
 # Begin Source File
@@ -2096,29 +1895,6 @@ SOURCE=..\gs\gameobj\tradeutil.h
 # Begin Source File
 
 SOURCE=..\gs\gameobj\Unit.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -2387,33 +2163,6 @@ SOURCE=..\gs\fileio\StartingPosition.h
 # Begin Source File
 
 SOURCE=..\gs\world\UnseenCell.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -2426,45 +2175,7 @@ SOURCE=..\gs\world\UnseenCellQuadTree.h
 # Begin Source File
 
 SOURCE=..\gs\world\WldGen.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
 # SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-# SUBTRACT BASE CPP /YX /Yc /Yu
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-# SUBTRACT BASE CPP /YX /Yc /Yu
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -2561,45 +2272,7 @@ SOURCE=..\gs\fileio\Token.h
 # Begin Source File
 
 SOURCE=..\gs\slic\lex.sc.c
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
 # SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-# SUBTRACT BASE CPP /YX /Yc /Yu
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-# SUBTRACT BASE CPP /YX /Yc /Yu
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -2617,45 +2290,7 @@ SOURCE=..\gs\slic\QuickSlic.h
 # Begin Source File
 
 SOURCE=..\gs\slic\sc.tab.c
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
 # SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-# SUBTRACT BASE CPP /YX /Yc /Yu
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-# SUBTRACT BASE CPP /YX /Yc /Yu
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -3494,6 +3129,7 @@ SOURCE=..\gs\events\GameEventArgument.h
 # Begin Source File
 
 SOURCE=..\gs\events\GameEventDescription.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -3810,6 +3446,7 @@ SOURCE=..\gs\newdb\personality.cdb
 
 !IF  "$(CFG)" == "ctp2 - Win32 Release"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -3821,6 +3458,7 @@ InputPath=..\gs\newdb\personality.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -3832,6 +3470,7 @@ InputPath=..\gs\newdb\personality.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -3843,6 +3482,7 @@ InputPath=..\gs\newdb\personality.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -3854,6 +3494,7 @@ InputPath=..\gs\newdb\personality.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -3865,6 +3506,7 @@ InputPath=..\gs\newdb\personality.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -3876,6 +3518,7 @@ InputPath=..\gs\newdb\personality.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -3887,6 +3530,7 @@ InputPath=..\gs\newdb\personality.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -3898,6 +3542,7 @@ InputPath=..\gs\newdb\personality.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
 
+USERDEP__PERSO="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\personality.cdb
@@ -4081,9 +3726,17 @@ USERDEP__ADVAN="$(ProjDir)\..\gs\dbgen\ctpdb.exe"
 ProjDir=.
 InputPath=..\gs\newdb\advance.cdb
 
-"$(ProjDir)\..\gs\newdb\AdvanceRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+BuildCmds= \
 	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
 
+"$(ProjDir)\..\gs\newdb\AdvanceRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"$(ProjDir)\..\gs\newdb\AdvanceBranchRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"$(ProjDir)\..\gs\newdb\AgeRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
@@ -4622,6 +4275,129 @@ SOURCE=..\gs\newdb\CityStyleRecord.cpp
 # Begin Source File
 
 SOURCE=..\gs\newdb\CityStyleRecord.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\gs\newdb\Civilisation.cdb
+
+!IF  "$(CFG)" == "ctp2 - Win32 Release"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
+
+USERDEP__CIVIL="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Civilisation.cdb
+
+"$(ProjDir)\..\gs\newdb\CivilisationRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\gs\newdb\CivilisationRecord.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\gs\newdb\CivilisationRecord.h
 # End Source File
 # Begin Source File
 
@@ -5183,6 +4959,7 @@ InputPath=..\gs\newdb\feat.cdb
 
 !ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
 
+USERDEP__FEAT_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\gs\newdb\feat.cdb
@@ -5781,6 +5558,129 @@ SOURCE=..\gs\newdb\ResourceRecord.cpp
 # Begin Source File
 
 SOURCE=..\gs\newdb\ResourceRecord.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\gs\newdb\Risk.cdb
+
+!IF  "$(CFG)" == "ctp2 - Win32 Release"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
+
+USERDEP__RISK_="$(ProjDir)\..\gs\dbgen\ctpdb.exe"	
+# Begin Custom Build
+ProjDir=.
+InputPath=..\gs\newdb\Risk.cdb
+
+"$(ProjDir)\..\gs\newdb\RiskRecord.stamp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(ProjDir)\..\gs\dbgen\ctpdb.exe $(ProjDir)\..\gs\newdb < $(InputPath)
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\gs\newdb\RiskRecord.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\gs\newdb\RiskRecord.h
 # End Source File
 # Begin Source File
 
@@ -7634,6 +7534,14 @@ SOURCE=..\ui\aui_common\aui_dropdown.cpp
 # Begin Source File
 
 SOURCE=..\ui\aui_common\aui_dropdown.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\ui\aui_common\aui_Factory.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\ui\aui_common\aui_Factory.h
 # End Source File
 # Begin Source File
 
@@ -12236,44 +12144,7 @@ SOURCE=..\ui\ldl\ldlif.h
 # Begin Source File
 
 SOURCE=..\ui\ldl\lex.ldl.c
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
 # SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-# SUBTRACT BASE CPP /YX /Yc /Yu
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
 # End Source File
 # End Group
 # Begin Group "interface"
@@ -12364,31 +12235,6 @@ SOURCE=..\ui\interface\ShortcutPad.h
 # Begin Source File
 
 SOURCE=..\ui\interface\StatusBar.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -12562,29 +12408,6 @@ SOURCE=..\ui\interface\diplomacywindow.h
 # Begin Source File
 
 SOURCE=..\ui\interface\dipwizard.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -12593,32 +12416,6 @@ SOURCE=..\ui\interface\dipwizard.h
 # Begin Source File
 
 SOURCE=..\ui\interface\editqueue.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-# ADD BASE CPP /FAcs
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -12819,32 +12616,6 @@ SOURCE=..\ui\interface\messageiconwindow.h
 # Begin Source File
 
 SOURCE=..\ui\interface\messagelist.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-# ADD BASE CPP /FAcs
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -12996,6 +12767,14 @@ SOURCE=..\ui\interface\soundscreen.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\ui\interface\SpecialAttackWindow.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\ui\interface\SpecialAttackWindow.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\ui\interface\splash.cpp
 # End Source File
 # Begin Source File
@@ -13077,18 +12856,6 @@ SOURCE=..\ui\interface\spriteeditor.cpp
 # Begin Source File
 
 SOURCE=..\ui\interface\spriteeditor.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\ui\interface\spscreen.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\ui\interface\spwindow.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\ui\interface\spwindow.h
 # End Source File
 # Begin Source File
 
@@ -13344,29 +13111,6 @@ SOURCE=..\ui\interface\Battle.h
 # Begin Source File
 
 SOURCE=..\ui\interface\BattleEvent.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -13375,29 +13119,6 @@ SOURCE=..\ui\interface\BattleEvent.h
 # Begin Source File
 
 SOURCE=..\ui\interface\BattleView.cpp
-
-!IF  "$(CFG)" == "ctp2 - Win32 Release"
-
-# ADD CPP /FAcs
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 NDebug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Final"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Debug Browse"
-
-!ELSEIF  "$(CFG)" == "ctp2 - Win32 Optimized Test"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Debug"
-
-!ELSEIF  "$(CFG)" == "ctp2 - SDL Final"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -14097,14 +13818,6 @@ SOURCE=..\ai\diplomacy\ProposalAnalysis.cpp
 # Begin Source File
 
 SOURCE=..\ai\diplomacy\ProposalAnalysis.h
-# End Source File
-# End Group
-# Begin Group "personality"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\ai\personality\aip2.h
 # End Source File
 # End Group
 # Begin Group "strategy"

@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Handling single player game start options. 
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,7 +17,9 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// - None
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
@@ -28,12 +31,14 @@
 //   should be in the game at the start and how many civs in the game should 
 //   be maximal in the game. The maximum number of players in one game is
 //   currently 32 and is hard encoded somewhere else. 
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
 #include "c3.h"
 #include "spnewgameplayersscreen.h"
 
+#include "aui_uniqueid.h"
 #include "c3window.h"
 #include "c3_popupwindow.h"
 #include "c3_button.h"
@@ -42,24 +47,14 @@
 #include "c3_static.h"
 #include "c3slider.h"
 #include "c3ui.h"
-
-//Added by Martin Gühmann
+#include "colorset.h"                   // g_colorSet
 #include "ctp2_spinner.h"
 #include "ctp2_Static.h"
-
-#include "colorset.h"
-extern ColorSet			*g_colorSet;
-
-
-#include "aui_uniqueid.h"
-
-#include "profileDB.h"
-
-#include "spnewgamewindow.h"
 #include "keypress.h"
+#include "profileDB.h"                  // g_theProfileDB
+#include "spnewgamewindow.h"
 
 extern C3UI			*g_c3ui;
-extern ProfileDB	*g_theProfileDB;
 
 namespace
 {
@@ -132,13 +127,10 @@ sint32	spnewgameplayersscreen_displayMyWindow()
 	sint32 retval=0;
 	if(!s_spNewGamePlayersScreen) { retval = spnewgameplayersscreen_Initialize(); }
 
-	AUI_ERRCODE auiErr;
+	AUI_ERRCODE auiErr = g_c3ui->AddWindow(s_spNewGamePlayersScreen);
+	Assert(auiErr == AUI_ERRCODE_OK);
 
-	auiErr = g_c3ui->AddWindow(s_spNewGamePlayersScreen);
 	keypress_RegisterHandler(s_spNewGamePlayersScreen);
-
-
-	Assert( auiErr == AUI_ERRCODE_OK );
 
 	return retval;
 }
@@ -212,7 +204,7 @@ sint32 spnewgameplayersscreen_removeMyWindow(uint32 action)
 //----------------------------------------------------------------------------
 AUI_ERRCODE spnewgameplayersscreen_Initialize( aui_Control::ControlActionCallback *callback )
 {
-	AUI_ERRCODE errcode;
+	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 	MBCHAR		windowBlock[ k_AUI_LDL_MAXBLOCK + 1 ];
 	MBCHAR		controlBlock[ k_AUI_LDL_MAXBLOCK + 1 ];
 //Added by Martin Gühmann

@@ -40,11 +40,6 @@ extern CivApp			*g_civApp;
 sint32 g_robotMessages = FALSE;
 #endif
 
-#ifdef _MSC_VER
-#pragma optimize ("", off)
-#endif
-
-
 sint32 g_hackInstantMessages = 0;	
 
 SlicObject::SlicObject()
@@ -377,7 +372,7 @@ void SlicObject::Finish()
 						continue;
 
 					if(g_player[m_recipientList[i]]->GetPlayerType() == PLAYER_TYPE_ROBOT &&
-					   *m_request == ID(0)
+					   *m_request == ID()
 #ifdef _DEBUG
 					   && !g_robotMessages
 #endif
@@ -645,6 +640,3 @@ void SlicObject::Continue()
 	Finish();
 }
 
-#ifdef _MSC_VER
-#pragma optimize ("", on)
-#endif

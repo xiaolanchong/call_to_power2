@@ -2,7 +2,8 @@
 //
 // Project      : Call To Power 2
 // File type    : C++ header
-// Description  :
+// Description  : Civilization archive for storing and loading the information 
+//                to/from savegames
 // Id           : $Id$
 //
 //----------------------------------------------------------------------------
@@ -18,22 +19,34 @@
 //
 // Compiler flags
 //
+// _DEBUG
+// - Generate debug version when set.
+//
+// USE_COM_REPLACEMENT
+// - Use COM replacement (for Linux)
+//
+// HUNT_SERIALIZE
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
 //
+// - Added put and get methods for MBCHAR* (Aug 24th 2005 Martin Gühmann)
+// - Removed DoubleUp method. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
-#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+
+#if defined(HAVE_PRAGMA_ONCE)
 #pragma once
 #endif
 
 #ifndef __CIVARCHIVE_H__
 #define __CIVARCHIVE_H__
 
-#include "Ic3CivArchive.h"
+class CivArchive;
 
-#include "Globals.h"
+#include "Ic3CivArchive.h"
+#include "ctp2_inttypes.h"
 #include <SDL_endian.h>
 
 #define k_ARCHIVE_MAGIC_VALUE_1	'OTAK'
@@ -42,14 +55,19 @@
 class GameFile ;
 class DataCheck ;
 
-class CivArchive : public IC3CivArchive
-	{
-	private:
-#if !defined(USE_COM_REPLACEMENT)
-      ULONG m_refCount;
+#if defined(USE_COM_REPLACEMENT)
+  #define   REFCOUNT_TYPE                 uint32
+  #define   INTERFACE_RESULT_TYPE(a_Type) virtual a_Type
 #else
-      uint32 m_refCount;
+  // Windows COM interface (original CTP2 code)
+  #define   REFCOUNT_TYPE                 ULONG
+  #define   INTERFACE_RESULT_TYPE(a_Type) STDMETHODIMP_(a_Type)
 #endif
+
+class CivArchive : public IC3CivArchive
+{
+private:
+      REFCOUNT_TYPE m_refCount;
 
 		bool	m_bIsStoring ;										
 
@@ -59,10 +77,9 @@ class CivArchive : public IC3CivArchive
 		uint8	*m_pbBaseMemory,									
 				*m_pbInsert ;										
 
-		void DoubleUp() ;											
 		void DoubleExpand(uint32 ulAmount) ;						
 
-	public:
+public:
 		void SetSize(uint32 ulSize) ;								
 		void SetStore(void) { m_bIsStoring = true ; }				
 		void SetLoad(void) { m_bIsStoring = false ; }				
@@ -77,25 +94,22 @@ class CivArchive : public IC3CivArchive
 		friend class BuildQueue ;									
 		friend class NetCRC;  
 		friend class MapFile;
-	public:
+
 		CivArchive() ;												
 		CivArchive(uint32 ulSize) ;									
-		~CivArchive() ;												
+		virtual ~CivArchive() ;												
 
 #if !defined(USE_COM_REPLACEMENT)
-      STDMETHODIMP QueryInterface(REFIID, void **obj);
-      STDMETHODIMP_(ULONG) AddRef();
-      STDMETHODIMP_(ULONG) Release();
-
-      STDMETHODIMP_ (void) Store(uint8 *pbData, uint32 ulLen);
-#else
-      virtual uint32 AddRef();
-      virtual uint32 Release();
-      virtual void Store(uint8 *pbData, uint32 ulLen);
+    STDMETHODIMP QueryInterface(REFIID, void **obj);
 #endif
 
+    INTERFACE_RESULT_TYPE(REFCOUNT_TYPE) AddRef();
+    INTERFACE_RESULT_TYPE(REFCOUNT_TYPE) Release();
+    INTERFACE_RESULT_TYPE(void) Load(uint8 *pbData, uint32 ulLen);
+    INTERFACE_RESULT_TYPE(void) Store(uint8 *pbData, uint32 ulLen);
+
 #ifndef HUNT_SERIALIZE
-		void StoreChunk(uint8 *start, uint8 *end);
+    void StoreChunk(uint8 *start, uint8 *end);
 #endif
 
         void TypeCheck(const uint8 tc);
@@ -126,6 +140,9 @@ class CivArchive : public IC3CivArchive
 		}
 		CivArchive &operator<< (const uint64 &val) {
 			PutUINT64(val); return (*this);
+		}
+		CivArchive &operator<< (const MBCHAR *val) {
+			PutMBCHAR(val); return (*this);
 		}
 		void PutDOUBLE(const double &val) {
 			
@@ -164,12 +181,17 @@ class CivArchive : public IC3CivArchive
 			uint64 temp = SDL_SwapLE64(val);
 			Store((uint8 *)&temp, sizeof(temp));
 		}
+		void PutMBCHAR(const MBCHAR *val) {
+			if(val){
+				uint32 len = strlen(val) + 1;
+				PutUINT32(len);
+				Store((uint8 *)val, len * sizeof(MBCHAR));
+			}
+			else{
+				PutUINT32(0);
+			}
+		}
 
-#if !defined(USE_COM_REPLACEMENT)
-      STDMETHODIMP_ (void) Load(uint8 *pbData, uint32 ulLen);
-#else
-      virtual void Load(uint8 *pbData, uint32 ulLen);
-#endif
 #ifndef HUNT_SERIALIZE
 		  void LoadChunk(uint8 *start, uint8 *end);
 #endif
@@ -199,6 +221,9 @@ class CivArchive : public IC3CivArchive
 		}
 		CivArchive &operator>> (uint64 &val) {
 			val = GetUINT64(); return (*this);
+		}
+		CivArchive &operator>> (MBCHAR *val) {
+			val = GetMBCHAR(); return (*this);
 		}
 		double GetDOUBLE(void) {
 			double val;
@@ -246,16 +271,22 @@ class CivArchive : public IC3CivArchive
 			Load((uint8 *)&val, sizeof(val));
 			return SDL_SwapLE64(val);
 		}
+		MBCHAR *GetMBCHAR(void) {
+			uint32 len = GetUINT32();
+			if(len > 0){
+				MBCHAR *val = new MBCHAR[len];
+				Load((uint8 *)val, len * sizeof(MBCHAR));
+				return val;
+			}
+			else{
+				return NULL;
+			}
+		}
 	
 		void PerformMagic(uint32 id) ;
 		void TestMagic(uint32 id) ;
 
-#if !defined(USE_COM_REPLACEMENT)
-      STDMETHODIMP_ (BOOL) IsStoring(void) { return (m_bIsStoring) ; }
-#else
-      virtual BOOL IsStoring(void) { return (m_bIsStoring); }
-#endif
-
+      INTERFACE_RESULT_TYPE(BOOL) IsStoring(void) { return m_bIsStoring; };
 		
 		void StoreArray( sint8 * dataarray, size_t size ) {
 			Store((uint8 *)dataarray, size);

@@ -1,3 +1,33 @@
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Player turn event organisation
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// _DEBUG
+// - Generate debug version when set.
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - None
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
 #include "player.h"
@@ -39,9 +69,9 @@
 #include "ctp2_Window.h"
 #include "debugmemory.h"
 
-extern ControlPanelWindow	*g_controlPanel;
-extern sint32					g_tileImprovementMode;
-extern TurnCount *g_turn;
+extern ControlPanelWindow       *g_controlPanel;
+extern sint32                   g_tileImprovementMode;
+extern TurnCount                *g_turn;
 
 void Player::BeginTurn()
 
@@ -77,7 +107,8 @@ void Player::BeginTurn()
 		g_controlPanel->GetWindow()->DrawChildren();
 	}
 
-	for(sint32 i = m_messages->Num() - 1; i >= 0; i--) {
+	sint32 i;
+	for(i = m_messages->Num() - 1; i >= 0; i--) {
 		if(!g_theMessagePool->IsValid(m_messages->Access(i))) {
 			m_messages->DelIndex(i);
 			continue;
@@ -116,21 +147,21 @@ void Player::BeginTurn()
 		}
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_WormholeTurn,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_WormholeTurn,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_PlayerPatience,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_PlayerPatience,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		
 		
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_PeaceMovement,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_PeaceMovement,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		
 		
@@ -138,74 +169,69 @@ void Player::BeginTurn()
 
 		
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_PollutionTurn,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_PollutionTurn,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_BeginTurnAllCities,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_BeginTurnAllCities,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
-		{
-			
-			sint32 n = m_all_cities->Num();
-			sint32 i;
-			for(i = 0; i < n; i++) {
-				g_gevManager->AddEvent(GEV_INSERT_Tail,
-									   GEV_CityTurnPreProduction,
-									   GEA_City, m_all_cities->Access(i),
-									   GEA_End);
-			}
-			
+		sint32 n = m_all_cities->Num();
+		for(i = 0; i < n; i++) {
 			g_gevManager->AddEvent(GEV_INSERT_Tail,
-								   GEV_BeginTurnProduction,
-								   GEA_Player, m_owner,
-								   GEA_End);
-			
-			
-			for(i = 0; i < n; i++) {
-				g_gevManager->AddEvent(GEV_INSERT_Tail,
-									   GEV_CityBeginTurn,
-									   GEA_City, m_all_cities->Access(i),
-									   GEA_End);
-			}
-			
-			g_gevManager->AddEvent(GEV_INSERT_Tail,
-								   GEV_BeginTurnSupport,
-								   GEA_Player, m_owner,
-								   GEA_End);
+			                       GEV_CityTurnPreProduction,
+			                       GEA_City, m_all_cities->Access(i),
+			                       GEA_End);
 		}
 
+		g_gevManager->AddEvent(GEV_INSERT_Tail,
+		                       GEV_BeginTurnProduction,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
+
+		for(i = 0; i < n; i++) {
+			g_gevManager->AddEvent(GEV_INSERT_Tail,
+			                       GEV_CityBeginTurn,
+			                       GEA_City, m_all_cities->Access(i),
+			                       GEA_End);
+		}
+
+		g_gevManager->AddEvent(GEV_INSERT_Tail,
+		                       GEV_BeginTurnSupport,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
+
 		
 		
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_BeginTurnImprovements,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_BeginTurnImprovements,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		BeginTurnEnemyUnits();
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_BeginTurnAgreements,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_BeginTurnAgreements,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_ResetAllMovement,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_ResetAllMovement,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_AttemptRevolt,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_AttemptRevolt,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_BeginTurnEndGame,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_BeginTurnEndGame,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		
 		
@@ -215,9 +241,9 @@ void Player::BeginTurn()
 		BeginTurnUnits();
 
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_BeginTurnGovernment,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_BeginTurnGovernment,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 
 		
 		m_strengths->Calculate();
@@ -236,8 +262,8 @@ void Player::BeginTurn()
 		
 		
 		g_gevManager->AddEvent(GEV_INSERT_Tail,
-							   GEV_FinishBeginTurn,
-							   GEA_Player, m_owner,
-							   GEA_End);
+		                       GEV_FinishBeginTurn,
+		                       GEA_Player, m_owner,
+		                       GEA_End);
 	}
 }

@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Handling of a list of Units in the same cell
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -28,6 +29,7 @@
 //   suggestions by NelsonAndBronte.
 // - Make unit types with 0 movement stand still (compiler option).
 // - Handled crashes with invalid units.
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -378,7 +380,7 @@ bool CellUnitList::GetTopVisibleUnitOfMoveType
     uint32	min_vis			= 0xffffffff; 
 	double	minmove			= -1;
 
-	Army	selectedArmy(0);
+	Army	selectedArmy;
 	g_selected_item->GetSelectedArmy(selectedArmy);
 
 	for (sint32 i = 0; i < m_nElements; ++i)
@@ -540,7 +542,7 @@ Unit CellUnitList::GetTopVisibleUnit(PLAYER_INDEX const looker) const
         }
     }                                
     
-    return Unit(0); 
+    return Unit(); 
 }
 
 BOOL CellUnitList::CanBeSued() const
@@ -749,7 +751,7 @@ BOOL CellUnitList::GetMovementTypeAir() const
 BOOL CellUnitList::CanBeCargoPodded() const
 {
 	sint32 i;
-	sint32 cargoPodType;
+	sint32 cargoPodType = -1;
 	for(i = 0; i < g_theUnitDB->NumRecords(); i++) {
 		if(g_theUnitDB->Get(i)->GetCargoPod()) {
 			cargoPodType = i;
@@ -977,7 +979,7 @@ void CellUnitList::ComputeStrength(double & attack,
         attack += (double) (rec->GetAttack() 
 			* m_array[i].GetHP()
 			* firepower); 
-        defense += (double) (m_array[i]->GetPositionDefense(Unit(0)) 
+        defense += (double) (m_array[i]->GetPositionDefense(Unit()) 
 			* m_array[i].GetHP()
 			* firepower);
         r = rec->GetZBRangeAttack()	

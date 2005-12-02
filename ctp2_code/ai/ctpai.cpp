@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Main Ai File
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -17,7 +18,8 @@
 //
 // Compiler flags
 //
-// - None
+// _DEBUG
+// - Generate debug version when set.
 //
 //----------------------------------------------------------------------------
 //
@@ -50,6 +52,7 @@
 //   in the city units that are waiting for being moved out. 
 //    - Feb. 21st 2005 Martin Gühmann
 // - Improved AI sliders optimization. - Jul 18th 2005 Martin Gühmann
+// - Removed unused local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -62,7 +65,7 @@
 #include "ctpgoal.h"
 #include "ctpai.h"
 #include "GoalRecord.h"
-#include "squad.h"
+#include "Squad.h"
 #include "mapanalysis.h"
 #include "governor.h"
 #include "AgreementMatrix.h"
@@ -101,7 +104,7 @@
 #include "World.h"
 #include "time.h"
 #include "Cell.h"
-#include "gold.h"
+#include "Gold.h"
 #include "RandGen.h"
 #include "GameSettings.h"
 #include "SelItem.h"
@@ -242,12 +245,7 @@ void CtpAi::AddOwnerGoalsForCity(const Unit &city, const PLAYER_INDEX ownerId)
 	CTPGoal_ptr goal_ptr;
 	GOAL_TYPE goal_type;
 
-	Assert(city != ID(0));
-	Assert(g_theUnitPool->IsValid(city) == TRUE);
-
-	
-	
-
+	Assert(city.IsValid());
 	
 	for (goal_type = 0; goal_type < g_theGoalDB->NumRecords(); goal_type++)
 	{
@@ -278,12 +276,7 @@ void CtpAi::AddForeignerGoalsForCity(const Unit &city, const PLAYER_INDEX foreig
 	CTPGoal_ptr goal_ptr;
 	GOAL_TYPE goal_type;
 
-	Assert(city != ID(0));
-	Assert(g_theUnitPool->IsValid(city) == TRUE);
-
-	
-	
-
+	Assert(city.IsValid());
 	
 	for (goal_type = 0; goal_type < g_theGoalDB->NumRecords(); goal_type++)
 	{
@@ -493,15 +486,10 @@ STDEHANDLER(CtpAi_AddUnitToArmyEvent)
 
 STDEHANDLER(CtpAi_CreatedArmyEvent)
 {
-	MapPoint pos;
 	Army army;
 
-	
 	if (!args->GetArmy(0, army))
 		return GEV_HD_Continue;
-	Assert(army != ID(0));
-	Assert(g_theArmyPool->IsValid(army) == TRUE);
-
 	
 	if (army->CanSettle() && 
 		Diplomat::GetDiplomat(army.GetOwner()).ShouldEscortSettlers())
@@ -509,7 +497,6 @@ STDEHANDLER(CtpAi_CreatedArmyEvent)
 		CtpAi::GroupWithEscort(army);
 	}
 
-	
 	CtpAi::AddGoalsForArmy(army);
 
 	return GEV_HD_Continue;
@@ -921,7 +908,7 @@ STDEHANDLER(CtpAi_ProcessMatchesEvent)
 		if(player_ptr->m_playerType == PLAYER_TYPE_ROBOT &&
 		   (!g_network.IsClient() || g_network.IsLocalPlayer(playerId))) {
 			for(i = 0; i < player_ptr->m_all_armies->Num(); i++) {
-				g_director->IncrementPendingGameActions();
+//				g_director->IncrementPendingGameActions();
 
 				g_gevManager->AddEvent(GEV_INSERT_Tail, GEV_BeginTurnExecute,
 									   GEA_Army, player_ptr->m_all_armies->Access(i).m_id,
@@ -1325,7 +1312,6 @@ void CtpAi::Save(CivArchive & archive)
 // Remark(s)  : -
 //
 //----------------------------------------------------------------------------
-
 void CtpAi::RemovePlayer(const PLAYER_INDEX deadPlayerId)
 {
 	Assert(deadPlayerId < s_maxPlayers);
@@ -1624,7 +1610,6 @@ void CtpAi::BeginTurn(const PLAYER_INDEX player)
 // Remark(s)  : Assumption: playerId points to a valid computer player.
 //
 //----------------------------------------------------------------------------
-
 void CtpAi::MoveOutofCityTransportUnits(const PLAYER_INDEX playerId)
 {
 	Player *		player_ptr	= g_player[playerId];
@@ -1715,7 +1700,6 @@ void CtpAi::MoveOutofCityTransportUnits(const PLAYER_INDEX playerId)
 // Remark(s)  : Assumption: playerId points to a valid computer player.
 //
 //----------------------------------------------------------------------------
-
 void CtpAi::UnGroupGarrisonUnits(const PLAYER_INDEX playerId)
 {
 	Player *		player_ptr = g_player[playerId];
@@ -1732,7 +1716,6 @@ void CtpAi::UnGroupGarrisonUnits(const PLAYER_INDEX playerId)
 		MapPoint	pos(city.RetPos());
 		g_theWorld->GetArmy(pos, garrison);
        
-        Army		move_army();
         sint32		min_size	= k_MAX_ARMY_SIZE;
 
 		for (sint32 j = 0; j < garrison.Num(); ++j)
@@ -2730,7 +2713,8 @@ void CtpAi::SetResearch(const PLAYER_INDEX player)
 
 			
 			bool stop_research = false;
-			for (int foreignerId = 1; foreignerId < CtpAi::s_maxPlayers; foreignerId++)
+			sint32 foreignerId;
+			for (foreignerId = 1; foreignerId < CtpAi::s_maxPlayers; foreignerId++)
 			{
 				const ai::Agreement	& agreement = 
 					AgreementMatrix::s_agreements.GetAgreement(player, foreignerId, PROPOSAL_OFFER_STOP_RESEARCH);

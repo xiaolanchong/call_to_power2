@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : Scenario editor
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -16,7 +17,9 @@
 //----------------------------------------------------------------------------
 //
 // Compiler flags
-// 
+//
+// - None
+//
 //----------------------------------------------------------------------------
 //
 // Modifications from the original Activision code:
@@ -43,6 +46,9 @@
 //   changing.
 // - Added icons and tooltips to city style buttons, by Martin Gühmann.
 // - Repaired backwards compatibility and possible crashes.
+// - Replaced old civilisation database by new one. (Aug 21st 2005 Martin Gühmann)
+// - Replaced old risk database by new one. (Aug 29th 2005 Martin Gühmann)
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -105,7 +111,7 @@
 #include "scenariowindow.h"
 
 #include "profileDB.h"
-#include "CivilisationDB.h"
+#include "CivilisationRecord.h"
 
 #include "MapCopyBuffer.h"
 
@@ -114,7 +120,7 @@
 #include "CivPaths.h"
 #include "ctp2_dropdown.h"
 
-#include "RiskDB.h"
+#include "RiskRecord.h"
 #include "DiffDB.h"
 
 #include "Cell.h"
@@ -229,10 +235,11 @@ void scenarioeditor_SetSaveOptionsFromMode(void)
 }
 
 ScenarioEditor::ScenarioEditor(AUI_ERRCODE *err)
-:	m_terrainImpSwitches(NULL),		
+:
 	m_terrainSwitches(NULL),
-	m_xWrapButton(NULL),			// never used?
-	m_yWrapButton(NULL)				// never used?
+	m_terrainImpSwitches(NULL),
+	m_xWrapButton(NULL),  // never used?
+	m_yWrapButton(NULL)   // never used?
 {
 	m_initializing = true;
 
@@ -396,7 +403,7 @@ ScenarioEditor::ScenarioEditor(AUI_ERRCODE *err)
 	m_paintTerrainImprovement = -1;		
 	m_brushSize = 1;
 	m_unitIndex = -1;
-	m_cityStyle = -2;
+	m_cityStyle = CITY_STYLE_EDITOR;
 	//Added by Martin Gühmann to initialize the pop number
 	//for newly created cities
 	m_newPopSize = 1;
@@ -497,7 +504,7 @@ AUI_ERRCODE ScenarioEditor::Initialize()
 	if(s_scenarioEditor)
 		return AUI_ERRCODE_OK;
 
-	AUI_ERRCODE err;
+	AUI_ERRCODE err = AUI_ERRCODE_OK;
 	s_scenarioEditor = new ScenarioEditor(&err);
 	Assert(err == AUI_ERRCODE_OK);
 
@@ -1877,8 +1884,8 @@ void ScenarioEditor::SetupNations()
 
 	
 	
-	for(i = 0; i < g_theCivilisationDB->GetNumRec(); i++) {
-		const MBCHAR *name = g_theStringDB->GetNameStr(g_theCivilisationDB->Access(i)->GetCountryName());
+	for(i = 0; i < g_theCivilisationDB->NumRecords(); i++) {
+		const MBCHAR *name = g_theStringDB->GetNameStr(g_theCivilisationDB->Get(i)->GetCountryName());
 
 		
 		AddDropDownItem(plgroup, "ScenNationItem", (MBCHAR *)name);
@@ -1933,12 +1940,12 @@ void ScenarioEditor::SetupNations()
 
 void ScenarioEditor::AddLeftList(aui_Control *control, uint32 action, uint32 data, void *cookie)
 {
-	ScenarioEditor::AddAddButton(NULL, AUI_LISTBOX_ACTION_DOUBLECLICKSELECT, NULL, NULL);	
+	ScenarioEditor::AddAddButton(NULL, AUI_LISTBOX_ACTION_DOUBLECLICKSELECT, 0, NULL);	
 }
 
 void ScenarioEditor::AddRightList(aui_Control *control, uint32 action, uint32 data, void *cookie)
 {
-	ScenarioEditor::AddRemoveButton(NULL, AUI_LISTBOX_ACTION_DOUBLECLICKSELECT, NULL, NULL);
+	ScenarioEditor::AddRemoveButton(NULL, AUI_LISTBOX_ACTION_DOUBLECLICKSELECT, 0, NULL);
 }
 
 void ScenarioEditor::AddAddItem(ctp2_ListBox *list, const MBCHAR *text, sint32 userData)
@@ -2482,10 +2489,10 @@ void ScenarioEditor::GetLabel(MBCHAR *labelString, sint32 playerOrCiv)
 	} else 
 	if (mode == SCEN_START_LOC_MODE_CIV) {
 		if(g_theCivilisationDB->Get(index)) {
-			sprintf(labelString, "%s (%d/%d)", 
-					g_theStringDB->GetNameStr(g_theCivilisationDB->GetPluralCivName((CIV_INDEX)(index))),
+			sprintf(labelString, "%s (%d/%d)",
+					g_theStringDB->GetNameStr(g_theCivilisationDB->Get(index)->GetPluralCivName()),
 					index,
-					g_theCivilisationDB->GetNumRec()-1);
+					g_theCivilisationDB->NumRecords()-1);
 		} else {
 			sprintf(labelString, "???");
 		}
@@ -2770,7 +2777,7 @@ void ScenarioEditor::SetupGlobalControls()
 	ctp2_Static *box = NULL;
 	dd = (ctp2_DropDown *)aui_Ldl::GetObject(s_scenarioEditorBlock, "Globals.MapSize");
 
-	AUI_ERRCODE err;
+	AUI_ERRCODE err = AUI_ERRCODE_OK;
 	aui_StringTable *table = new aui_StringTable(&err, "SPMapSizeStringTable");
 
 	Assert(err == AUI_ERRCODE_OK);
@@ -2798,11 +2805,11 @@ void ScenarioEditor::SetupGlobalControls()
 	dd->Clear();
 	table = new aui_StringTable(&err, "SPRiskLevelStringTable");
 	if(dd) {
-		for(i = 0; i < g_theRiskDB->GetNumRec(); i++) {
+		for(i = 0; i < g_theRiskDB->NumRecords(); i++) {
 			
 
 
-
+			// Should be taken from the string database directly
 			AddDropDownItem(dd, "ScenBarbarianItem", table->GetString(i));	
 		}
 		dd->SetSelectedItem(g_theProfileDB->GetRiskLevel());
@@ -2934,22 +2941,14 @@ void ScenarioEditor::Pollution(aui_Control *control, uint32 action, uint32 data,
 	g_theProfileDB->SetPollutionRule(!g_theProfileDB->IsPollutionRule());
 }
 
-class ReopenEditorAction : public aui_Action
-{
-  public:
-	virtual ActionCallback Execute;
-};
+AUI_ACTION_BASIC(ReopenEditorAction);
 
 void ReopenEditorAction::Execute(aui_Control *control, uint32 action, uint32 data )
 {
 	ScenarioEditor::Display();
 }
 
-class PostReopenEditorActionAction : public aui_Action
-{
-  public:
-	virtual ActionCallback Execute;
-};
+AUI_ACTION_BASIC(PostReopenEditorActionAction);
 
 void PostReopenEditorActionAction::Execute(aui_Control *control, uint32 action, uint32 data )
 {
@@ -3242,7 +3241,7 @@ void ScenarioEditor::ClearWorld(aui_Control *control, uint32 action, uint32 data
 		}
 	}
 
-	Unit c(0);
+	Unit c;
 
 	for(x = 0; x < g_theWorld->GetXWidth(); x++) {
 		for(y = 0; y < g_theWorld->GetYHeight(); y++) {
@@ -3463,8 +3462,8 @@ void ScenarioEditor::FindPosNow(aui_Control *control, uint32 action, uint32 data
 
 	MBCHAR Xtext[MAX_CHARS];
 	MBCHAR Ytext[MAX_CHARS];
-	uint32 posX;
-	uint32 posY;
+	uint32 posX = 0;
+	uint32 posY = 0;
 
 	ctp2_TextField *tf = (ctp2_TextField *)aui_Ldl::GetObject(s_scenarioEditorBlock, "WorldExtraControls.FindPosXField");
 	if(!tf->GetFieldText(Xtext, MAX_CHARS)) {

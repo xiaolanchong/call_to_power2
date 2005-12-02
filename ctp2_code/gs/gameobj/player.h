@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C/C++ header
 // Description  : Player game object header
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -17,7 +18,12 @@
 //
 // Compiler flags
 //
-// - None
+// BATTLE_FLAGS
+//
+// _DEBUG_INCOMPATIBLE
+//
+// _DEBUG
+// - Generate debug version when set.
 //
 //----------------------------------------------------------------------------
 //
@@ -28,6 +34,8 @@
 // - Made GetCivilisation method const - May 7th 2005 Martin Gühmann
 // - Import structure improved, merged with linux version.
 // - Made player.h to compile again.
+// - Removed unused void BeginTurnAllCities all cities method. - Aug. 7th 2005 Martin Gühmann
+// - Added civilisation specific happiness bonus method. (Oct 7th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -92,7 +100,6 @@ enum PLAYER_TYPE
 	PLAYER_TYPE_NETWORK
 };
 
-typedef sint32      AdvanceType;
 typedef sint32      PLAYER_INDEX;
 typedef sint32      TERRAIN_IMPROVEMENT;
 
@@ -106,7 +113,7 @@ PLAYER_INDEX const  PLAYER_UNASSIGNED   = -1;
 // Project dependencies
 //----------------------------------------------------------------------------
 
-#include "Advances.h"           // Advances
+#include "Advances.h"           // Advances, AdvanceType
 #include "AgreementTypes.h"     // AGREEMENT_TYPE
 #include "AICause.h"            // CAUSE_..., ERR_BUILD_INST
 #include "directions.h"         // WORLD_DIRECTION
@@ -114,10 +121,10 @@ PLAYER_INDEX const  PLAYER_UNASSIGNED   = -1;
 #include "GameOver.h"           // GAME_OVER
 #include "MapPoint.h"           // MapPoint
 #include "PollutionConst.h"     // k_MAX_EVENT_POLLUTION_TURNS, etc.
-#include "TradeRoute.h"         // TradeRoute
+#include "TradeRoute.h"         // TradeRoute, ROUTE_TYPE
 #include "Readiness.h"          // READINESS_LEVEL
 #include "Strengths.h"          // STRENGTH_CAT
-#include "UnitData.h"           // UNIT_COMMAND
+#include "Unit.h"               // UNIT_COMMAND
 
 template <class T> class DynamicArray;
 template <class T> class Database;
@@ -319,7 +326,7 @@ public:
 
 	MilitaryReadiness *m_readiness;
 	PlayerHappiness   *m_global_happiness;
-	Civilisation      *m_civilisation ;
+	Civilisation      *m_civilisation;
 
 	Throne            *m_throne;
 
@@ -735,14 +742,13 @@ public:
 
 	static bool IsThisPlayerARobot(const sint32 &p)
 	{
-	    Assert(0 <= p);
-	    Assert(p < k_MAX_PLAYERS);
+		Assert(0 <= p);
+		Assert(p < k_MAX_PLAYERS);
 		Assert(g_player);
 		Assert(g_player[p]);
 		return (g_player[p]->GetPlayerType() == PLAYER_TYPE_ROBOT);
 	}
 
-	void BeginTurnAllCities();
 	void BeginTurnWonders();
 	sint32 CalcWonderGold();
 	sint32 CalcTotalBuildingUpkeep();
@@ -1134,6 +1140,7 @@ public:
 	sint32 GetGovernorPwReserve() const;
 
 	sint32 CountCityHappiness(sint32 &rioting, sint32 &content, sint32 &happy);
+	sint32 CityHappinessIncrease() const;
 
 
 	sint16 GetCargoCapacity() const;

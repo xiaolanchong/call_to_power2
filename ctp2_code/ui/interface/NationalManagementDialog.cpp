@@ -44,16 +44,14 @@
 //   player better to know how much food is needed, as a negative amount is 
 //   displayed if the city starves. Gold is now displayed in red if it is
 //   critical. - April 6th 2005 Martin Gühmann
-// - Added mod compatibilty crash fix
 // - Added City Manager button and functions callback. - July 24th 2005 Martin Gühmann
 // - National Manager window will always be displayed on top of other 
 //   windows when activated. - July 24th 2005 Martin Gühmann
+// - Corrected crashes with mods.
 //
 //----------------------------------------------------------------------------
 
 #include "c3.h"
-
-
 #include "NationalManagementDialog.h"
 
 
@@ -81,14 +79,12 @@
 #include "EditQueue.h"
 #include "citywindow.h"
 
+#include "colorset.h"                   // g_colorSet
+#include "ConstDB.h"                    // g_theConstDB
 #include "director.h"
-#include "ConstDB.h"
-#include "colorset.h"
-
 #include "network.h"
 
-extern ConstDB  *g_theConstDB;
-extern ColorSet *g_colorSet;
+extern C3UI *g_c3ui;
 
 
 class BuildQueueDropdownItem {
@@ -116,6 +112,8 @@ static const sint32 k_NMD_RES_GOLD          = 5;
 static const sint32 k_NMD_RES_SCIENCE       = 6;
 static const sint32 k_NMD_RES_POLLUTION     = 7;
 static const sint32 k_NMD_RES_CRIME         = 8;
+static const sint32 k_NMD_RES_CONVERSION    =  9;
+static const sint32 k_NMD_RES_FRANCHISE     = 10;
 static const sint32 k_NMD_STAT_CITY_NAME    = 0;
 static const sint32 k_NMD_STAT_MAYOR        = 1;
 static const sint32 k_NMD_STAT_PRIORITY     = 2;
@@ -131,8 +129,6 @@ static const sint32 k_NMD_SPEC_LABORER      = 6;
 static const sint32 k_NMD_SPEC_MERCHANT     = 7;
 static const sint32 k_NMD_SPEC_SCIENTIST    = 8;
 static const sint32 k_NMD_SPEC_COMBAT_UNITS = 9;
-
-extern C3UI *g_c3ui;
 
 
 NationalManagementDialog *g_nationalManagementDialog = NULL;
@@ -247,10 +243,10 @@ m_cityManagerButton(static_cast<ctp2_Button*>(aui_Ldl::GetObject(
 	"CityStatusWin.CityManagerButton"))),
 m_disbandButton(static_cast<ctp2_Button*>(aui_Ldl::GetObject(
 	"CityStatusWin.DisbandButton"))),
-m_resourceTab(static_cast<ctp2_Tab*>(aui_Ldl::GetObject(
-	"CityStatusWin.TabGroup.Tab1"))),
 m_statusTab(static_cast<ctp2_Tab*>(aui_Ldl::GetObject(
 	"CityStatusWin.TabGroup.Tab2"))),
+m_resourceTab(static_cast<ctp2_Tab*>(aui_Ldl::GetObject(
+	"CityStatusWin.TabGroup.Tab1"))),
 m_specialistTab(static_cast<ctp2_Tab*>(aui_Ldl::GetObject(
 	"CityStatusWin.TabGroup.Tab3")))
 {
@@ -810,6 +806,27 @@ void NationalManagementDialog::UpdateResourceItem(ctp2_ListItem *item,
 		column->SetTextColor(colorNorm);
 	}
 
+	if(ctp2_Static *column = GetListItemColumn(item, k_NMD_RES_CONVERSION)) {
+		sint32 convertedGold = cityData->GetConvertedGold();
+		sprintf(stringBuffer, "%d", convertedGold);
+		column->SetText(stringBuffer);
+		if (convertedGold > 0 && cityData->GetConvertedTo() > -1) {
+			COLOR color = g_colorSet->ComputePlayerColor(cityData->GetConvertedTo());
+			column->SetTextColor(g_colorSet->GetColorRef(color));
+		} else
+			column->SetTextColor(colorNorm);
+	}
+	
+	if(ctp2_Static *column = GetListItemColumn(item, k_NMD_RES_FRANCHISE)) {
+		sint32 franchise = cityData->GetProductionLostToFranchise();
+		sprintf(stringBuffer, "%d", franchise);
+		column->SetText(stringBuffer);
+		if (franchise > 0 && cityData->GetFranchiseOwner() > -1) {
+			COLOR color = g_colorSet->ComputePlayerColor(cityData->GetFranchiseOwner());
+			column->SetTextColor(g_colorSet->GetColorRef(color));
+		} else
+			column->SetTextColor(colorNorm);
+	}
 	
 	if(ctp2_Static *column = GetListItemColumn(item, k_NMD_RES_CITY_NAME)) {
 		column->SetText(cityData->GetName());
@@ -1193,6 +1210,8 @@ sint32 NationalManagementDialog::CompareResources(ctp2_ListItem *item1,
 		case k_NMD_RES_SCIENCE:
 		case k_NMD_RES_POLLUTION:
 		case k_NMD_RES_CRIME:
+		case k_NMD_RES_CONVERSION:
+		case k_NMD_RES_FRANCHISE:
 			result = atoi(column1->GetText()) - atoi(column2->GetText());
 			break;
 		
@@ -1432,15 +1451,18 @@ void NationalManagementDialog::BuildQueueButtonActionCallback(aui_Control *contr
 		cities.Insert(city);
 	}
 
-	if(cities.Num() == 1) {
-		
-		if(g_network.IsClient() && g_network.GetSensitiveUIBlocked()) {
-		} else {
+	if (g_network.IsClient() && g_network.GetSensitiveUIBlocked()) 
+    {
+        // No action: display is locked
+    }
+    else
+    {
+	    if (cities.Num() == 1) 
+        {
 			EditQueue::Display(CityWindow::GetCityData(cities.Access(0)));
 		}
-	} else {
-		if(g_network.IsClient() && g_network.GetSensitiveUIBlocked()) {
-		} else {
+        else 
+        {
 			EditQueue::Display(cities);
 		}
 	}
@@ -1820,12 +1842,10 @@ void NationalManagementDialog::UpdateMainButtons(ctp2_ListBox *box)
 		m_buildQueueButton->Enable(TRUE);
 	}
 
-	if(box->GetSelectedList()->L() == 1){
-		m_cityManagerButton->Enable(TRUE);
-	}
-	else{
-		m_cityManagerButton->Enable(FALSE);
-	}
+    if (m_cityManagerButton)
+    {
+        m_cityManagerButton->Enable(1 == box->GetSelectedList()->L());
+    }
 }
 
 void NationalManagementDialog::TabActionCallback(aui_Control *control,

@@ -3,6 +3,7 @@
 // Project      : Call To Power 2
 // File type    : C++ source
 // Description  : New game (SP, MP, scenario) initialisation
+// Id           : $Id$
 //
 //----------------------------------------------------------------------------
 //
@@ -39,11 +40,15 @@
 //   - June 4th 2005 Martin Gühmann
 // - Allowed for nPlayers to be 2 or 3 - JJB 2005/06/28
 // - Removed auto-tutorial on low difficulty - JJB 2005/06/28
+// - Removed refferences to the civilisation database. (Aug 20th 2005 Martin Gühmann)
+// - Removed unused SpriteStateDB refferences. (Aug 28th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
 #include "c3.h" 
 #include "c3debug.h"
+#include <ios>
+#include <iostream>
 
 #include "aui.h"
 
@@ -70,10 +75,7 @@
 #include "World.h"
 #include "player.h"
 
-#include "DataCheck.h"
-
 #include "RandGen.h"
-#include "SpriteStateDB.h"
 
 #include "TradePool.h"
 #include "gameinit.h"
@@ -90,7 +92,6 @@
 #include "installationtree.h"
 
 #include "WonderRecord.h"
-#include "CivilisationDB.h"
 #include "filenamedb.h"
 
 #include "pollution.h"
@@ -108,7 +109,7 @@
 #include "profileDB.h"
 #include "c3errors.h"
 
-#include "aicause.h"
+#include "AICause.h"
 #include "Advances.h"
 
 #include "SlicEngine.h"
@@ -121,8 +122,6 @@
 #include "TopTen.h"
 #include "SoundRecord.h"
 
-#include "RiskDB.h"
-
 #include "PlayListDB.h"
 
 #include "Wormhole.h"
@@ -131,13 +130,12 @@
 #include "Exclusions.h"
 
 #include "network.h"
-#include "EndGameDB.h"
 #include "PollutionDB.h"
 
 #include "debugmemory.h"
 #include "TradeBids.h"
 
-#include "order.h"
+#include "Order.h"
 #include "UnseenCell.h"
 #include "pool.h"
 
@@ -187,11 +185,9 @@ extern Director *g_director;
 
 StringDB                    *g_theStringDB=NULL; 
 ConceptDB                   *g_theConceptDB = NULL;
-CivilisationDatabase        *g_theCivilisationDB=NULL;
 PollutionDatabase           *g_thePollutionDB=NULL ;
 GlobalWarmingDatabase       *g_theGWDB=NULL ;
 OzoneDatabase               *g_theUVDB=NULL ;
-Database <GovernmentRecord> *g_theGovernmentDB=NULL; 
 ConstDB                     *g_theConstDB=NULL; 
 ThroneDB                    *g_theThroneDB = NULL;
 DifficultyDB                *g_theDifficultyDB = NULL; 
@@ -219,11 +215,9 @@ InstallationQuadTree        *g_theInstallationTree = NULL;
 TopTen                      *g_theTopTen = NULL ; 
 TurnCount                   *g_turn = NULL; 
 ProfileDB                   *g_theProfileDB = NULL; 
-RiskDatabase                *g_theRiskDB = NULL;
 MovieDB                     *g_theWonderMovieDB = NULL;
 MovieDB                     *g_theVictoryMovieDB = NULL;
 FilenameDB                  *g_theMessageIconFileDB = NULL;
-FilenameDB                  *g_theGoodsIconDB = NULL;
 Pool<Order>                 *g_theOrderPond = NULL;
 Pool<UnseenCell>            *g_theUnseenPond = NULL;
 
@@ -265,7 +259,7 @@ MBCHAR g_advancedb_filename[_MAX_PATH];
 MBCHAR g_concepticondb_filename[_MAX_PATH];
 MBCHAR g_tileimprovementdb_filename[_MAX_PATH];
 MBCHAR g_tileimprovementicondb_filename[_MAX_PATH];
-MBCHAR g_spritestatedb_filename[_MAX_PATH];
+MBCHAR g_spritestatedb_filename[_MAX_PATH]; // Free slot
 MBCHAR g_specialeffectdb_filename[_MAX_PATH];
 MBCHAR g_specialattackinfodb_filename[_MAX_PATH];
 MBCHAR g_city_style_db_filename[_MAX_PATH];
@@ -275,8 +269,8 @@ MBCHAR g_age_city_style_db_filename[_MAX_PATH];
 
 
 
-MBCHAR g_goodsspritestatedb_filename[_MAX_PATH];
-MBCHAR g_cityspritestatedb_filename[_MAX_PATH];
+MBCHAR g_goodsspritestatedb_filename[_MAX_PATH]; // Future free slot
+MBCHAR g_cityspritestatedb_filename[_MAX_PATH]; // Free slot
 MBCHAR g_uniticondb_filename[_MAX_PATH];
 MBCHAR g_wondericondb_filename[_MAX_PATH];
 MBCHAR g_improveicondb_filename[_MAX_PATH];
@@ -318,8 +312,6 @@ MBCHAR g_diplomacy_threat_filename[_MAX_PATH];
 extern MBCHAR g_slic_filename[_MAX_PATH];
 extern MBCHAR g_tutorial_filename[_MAX_PATH];
 
-extern DataCheck *g_dataCheck;
-
 extern void Astar_Init();
 extern void Astar_Cleanup();
 CIV_INDEX gameinit_GetCivForSlot(sint32 slot);
@@ -328,11 +320,6 @@ CIV_INDEX gameinit_GetCivForSlot(sint32 slot);
 
 
 
-
-extern SpriteStateDB      *g_theSpriteStateDB;
-extern SpriteStateDB      *g_theSpecialEffectDB;
-extern SpriteStateDB      *g_theGoodsSpriteStateDB;
-extern SpriteStateDB      *g_theCitySpriteStateDB;
 
 extern HWND               gHwnd; 
 extern void               verifyYwrap();
@@ -561,7 +548,7 @@ sint32 gameinit_PlaceInitalUnits(sint32 nPlayers, MapPoint player_start_list[k_M
 
 		for(j = 0; j < nUnits; j++) 
 		{
-			id =  g_player[i]->CreateUnit(settler, player_start_list[which], Unit(0), 
+			id =  g_player[i]->CreateUnit(settler, player_start_list[which], Unit(), 
 										  FALSE, CAUSE_NEW_ARMY_INITIAL); 
 		}
 
@@ -570,7 +557,7 @@ sint32 gameinit_PlaceInitalUnits(sint32 nPlayers, MapPoint player_start_list[k_M
 		g_theProfileDB->SetCheatAge(g_cheat_age);
 		if (g_theProfileDB->GetCheatAge(age)) {
 		for(; j <9; j++) {
-			id =  g_player[i]->CreateUnit(settler, player_start_list[which], Unit(0), 
+			id =  g_player[i]->CreateUnit(settler, player_start_list[which], Unit(), 
 			                              FALSE, CAUSE_NEW_ARMY_INITIAL);
 		}
 		}
@@ -602,7 +589,7 @@ void gameinit_SpewUnits(sint32 player, MapPoint &pos)
 					}
 				}  while(!g_theWorld->CanEnter(pos, g_theUnitDB->Get(i)->GetMovementType()));
 				
-				Unit id1 = g_player[player]->CreateUnit(i, pos, Unit(0), 
+				Unit id1 = g_player[player]->CreateUnit(i, pos, Unit(), 
 				                                        FALSE, CAUSE_NEW_ARMY_INITIAL); 
 				id1.SetIsProfessional(TRUE); 
 			}
@@ -635,7 +622,7 @@ void gameinit_SpewUnits(sint32 player, MapPoint &pos)
 					}
 				}  while(!g_theWorld->CanEnter(pos, g_theUnitDB->Get(uid)->GetMovementType()));
 
-				Unit id1 = g_player[player]->CreateUnit(uid, pos, Unit(0), 
+				Unit id1 = g_player[player]->CreateUnit(uid, pos, Unit(), 
 				                                        FALSE, CAUSE_NEW_ARMY_INITIAL); 
 				id1.SetIsProfessional(TRUE); 
 				
@@ -654,7 +641,7 @@ void gameinit_PlaceInitalUnits()
 		
 	for (j=0; j<k_MAX_PLAYERS; j++) { 
 		if(!g_player[j]) continue;
-		pos.x = j * 2;
+		pos.x = static_cast<sint16>(j * 2);
 		pos.y = 2;
 		gameinit_SpewUnits(j, pos);
 	}	
@@ -674,7 +661,7 @@ sint32 gameinit_InitializeGameFiles(void)
 
 	fin = c3files_fopen(C3DIR_GAMEDATA, "gamefile.txt", "r");
 
-	dir[0] = NULL ;
+	dir[0] = 0;
 
 	r=fscanf (fin, "%s", str1); 
 	if (r == EOF) { 
@@ -1292,6 +1279,8 @@ sint32 spriteEditor_Initialize(sint32 mWidth, sint32 mHeight)
 	else
 		return FALSE;
 
+	Assert(g_slicEngine);
+
 	
 	g_theProfileDB->SetTutorialAdvice(FALSE);
 	g_theProfileDB->SetThroneRoom(FALSE);
@@ -1299,7 +1288,6 @@ sint32 spriteEditor_Initialize(sint32 mWidth, sint32 mHeight)
 	g_theProfileDB->SetRiskLevel(0);
 	g_theProfileDB->SetNonRandomCivs(TRUE);
 	
-	Assert(g_slicEngine); // Why here?
 
 
 
@@ -2523,7 +2511,7 @@ sint32 gameinit_Initialize(sint32 mWidth, sint32 mHeight, CivArchive &archive)
 				} else {
 					settler = landSettler;
 				}
-				g_player[i]->CreateUnit(settler, point, Unit(0),
+				g_player[i]->CreateUnit(settler, point, Unit(),
 										FALSE, CAUSE_NEW_ARMY_INITIAL);
 			}
 		}

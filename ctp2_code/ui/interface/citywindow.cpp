@@ -53,6 +53,8 @@
 //   distribution, unfortunatly it does work as exspected.
 //   - April 23rd 2005 Martin Gühmann
 // - Added National Manager button and functions callback. - July 24th 2005 Martin Gühmann
+// - Added preparations for city resource calculation replacement. (Aug 12th 2005 Martin Gühmann)
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
 //
 //----------------------------------------------------------------------------
 
@@ -91,8 +93,7 @@
 
 #include "StrDB.h"
 #include "ConstDB.h"
-#include "colorset.h"
-extern ColorSet                     *g_colorSet;
+#include "colorset.h"               // g_colorSet
 
 #include "BldQue.h"
 #include "gold.h"
@@ -132,10 +133,9 @@ extern ProjectFile                  *g_GreatLibPF;
 #include "aicause.h"	// CAUSE_NEW_ARMY_GROUPING, CAUSE_REMOVE_ARMY_GROUPING
 #include "ArmyPool.h"	// g_armyPool
 
-
-static CityWindow                   *s_cityWindow = NULL;
 extern C3UI                         *g_c3ui;
 
+static CityWindow                   *s_cityWindow = NULL;
 static MBCHAR                       *s_cityWindowBlock = "CityWindow";
 static MBCHAR                       *s_cityStatsBlock = "CityStatisticsWindow";
 
@@ -451,7 +451,7 @@ AUI_ERRCODE CityWindow::Initialize()
 		return AUI_ERRCODE_OK;
 
 	
-	AUI_ERRCODE err;
+	AUI_ERRCODE err = AUI_ERRCODE_OK;
 	s_cityWindow = new CityWindow(&err);
 
 	Assert(err == AUI_ERRCODE_OK);
@@ -577,13 +577,20 @@ void CityWindow::Project(CityData *cityData)
 
 	
 	cityData->CollectResources();
+#if defined(NEW_RESOURCE_PROCESS)
+	cityData->ProcessResources();
+	cityData->CalculateResources();
+	cityData->CalcPollution();
+	cityData->DoSupport(true);
+#else
+	cityData->ProcessProduction(true);
 	cityData->DoSupport(true);
 	cityData->SplitScience(true);
+	cityData->CollectOtherTrade(true, false);
 	cityData->ProcessFood();
-	cityData->CollectOtherTrade(TRUE, FALSE);
-	cityData->ProcessProduction(true);
 	cityData->CalcPollution();
-	cityData->CalcHappiness(gold, FALSE);
+#endif
+	cityData->CalcHappiness(gold, false);
 	cityData->EatFood();
 	cityData->CalculateGrowthRate();
 
@@ -2564,8 +2571,8 @@ void CityWindow::ActivateUnitCallback(aui_Control *control, uint32 action, uint3
 //
 // Description: Disband the units in the selected boxes (when confirmed).
 //
-// Parameters : result		: the user has confirmed disbanding.
-//              ud			: ? (not used)
+// Parameters : result      : the user has confirmed disbanding.
+//              ud          : ? (not used)
 //
 // Returns    : -
 //
@@ -2655,7 +2662,7 @@ void CityWindow::NotifyCityCaptured(const Unit &c)
 	while(walk.IsValid()) {
 		if(walk.GetObj()->GetHomeCity().m_id == c.m_id) {
 			update = true;
-			delete walk.Remove();		   
+			delete walk.Remove();
 		} else {
 			walk.Next();
 		}

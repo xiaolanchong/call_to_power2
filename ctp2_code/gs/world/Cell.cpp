@@ -36,6 +36,7 @@
 // - Moved Peter's good's fix to the according Get*FromTerrain functions.
 //   - April 13th 2005 Martin Gühmann
 // - Fix retrieval of good boni. - May 18th 2005 Martin Gühmann
+// - Prevented crash with multiple instances of an improvement that is deleted.
 //
 //----------------------------------------------------------------------------
 
@@ -251,7 +252,7 @@ sint32 Cell::RemoveUnitReference(const Unit &u)
 
        return TRUE; 
    } else if (u == GetCity()) { 
-        SetCity(Unit(0));
+        SetCity(Unit());
         return TRUE;
    } else {
 
@@ -739,19 +740,23 @@ sint32 Cell::GetNumTradeRoutes() const
 
 TradeRoute Cell::GetTradeRoute(sint32 index) const
 {
-	static TradeRoute r(0);
-	if(!m_objects)
-		return r;
+	static TradeRoute invalidRoute;
 
-	sint32 i, c = 0;
-	for(i = 0; i < m_objects->Num(); i++) {
-		if((m_objects->Access(i).m_id & k_ID_TYPE_MASK) == k_BIT_GAME_OBJ_TYPE_TRADE_ROUTE) {
-			if(c == index)
-				return TradeRoute(m_objects->Access(i).m_id);
-			c++;
-		}
-	}
-	return r;
+	if (m_objects)
+    {
+	    sint32 c = 0;
+	    for (sint32 i = 0; i < m_objects->Num(); ++i) 
+        {
+		    if ((m_objects->Access(i).m_id & k_ID_TYPE_MASK) == k_BIT_GAME_OBJ_TYPE_TRADE_ROUTE) 
+            {
+			    if (c == index)
+				    return TradeRoute(m_objects->Access(i).m_id);
+			    c++;
+		    }
+	    }
+    }
+
+	return invalidRoute;
 }
 
 void Cell::InsertImprovement(const TerrainImprovement &imp)
@@ -768,7 +773,11 @@ void Cell::RemoveImprovement(const TerrainImprovement &imp)
 {
 	if (m_objects)
 	{
-		m_objects->Del(imp);
+        while (m_objects->Del(imp))
+        {
+            // Check for and delete multiple instances
+        }
+
 		size_t const	count	= m_objects->Num();
 		
 		for (size_t i = 0; i < count; ++i)
@@ -873,15 +882,15 @@ CellUnitList *Cell::UnitArmy()
 
 Unit &Cell::AccessUnit(sint32 index)
 {
-	static Unit zero(0);
+	static Unit invalid;
 	Assert(m_unit_army);
 	if(!m_unit_army) {
-		return zero;
+		return invalid;
 	}
 
 	Assert(index >= 0 && index < m_unit_army->Num());
 	if(index < 0 || index >= m_unit_army->Num()) {
-		return zero;
+		return invalid;
 	}
 
 	return m_unit_army->Access(index);
@@ -901,17 +910,13 @@ void Cell::SetCity(const Unit &c)
 
 Unit Cell::GetCity() const
 {
-	static Unit u(0);
-	if(m_env & k_MASK_ENV_CITY) {
-		
-		
-		
+	if (m_env & k_MASK_ENV_CITY) 
+    {
 		return m_city;
-	} else {
-		
-		
-		
-		return u;
+	} 
+    else 
+    {
+		return Unit();
 	}
 }
 
@@ -961,24 +966,23 @@ TerrainImprovement Cell::AccessImprovement(sint32 index)
 			}
 		}
 	}
+
 	Assert(FALSE);
-	static TerrainImprovement t(0);
-	return t;
+	return TerrainImprovement();
 }
 
 void Cell::CreateGoodyHut()
 {
-	if ( !m_jabba ) {
+	if (!m_jabba) 
+    {
 		m_jabba = new GoodyHut();
 	}
 }
 
 void Cell::DeleteGoodyHut()
 {
-	if (m_jabba != NULL) {
-		delete m_jabba;
-		m_jabba = NULL;
-	}
+	delete m_jabba;
+	m_jabba = NULL;
 }
 
 BOOL Cell::HasWormhole() const
@@ -1180,8 +1184,7 @@ ID Cell::GetObject(sint32 index)
 	if(m_objects)	  
 		return m_objects->Access(index);
 
-	static ID id(0);
-	return id;
+	return ID();
 }
 
 void Cell::InsertDBImprovement(sint32 type)

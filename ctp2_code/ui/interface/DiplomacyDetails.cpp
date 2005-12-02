@@ -1,3 +1,32 @@
+//----------------------------------------------------------------------------
+//
+// Project      : Call To Power 2
+// File type    : C++ source
+// Description  : Handling diplomacy details about other players.
+// Id           : $Id$
+//
+//----------------------------------------------------------------------------
+//
+// Disclaimer
+//
+// THIS FILE IS NOT GENERATED OR SUPPORTED BY ACTIVISION.
+//
+// This material has been developed at apolyton.net by the Apolyton CtP2 
+// Source Code Project. Contact the authors at ctp2source@apolyton.net.
+//
+//----------------------------------------------------------------------------
+//
+// Compiler flags
+//
+// - None
+//
+//----------------------------------------------------------------------------
+//
+// Modifications from the original Activision code:
+//
+// - Initialized local variables. (Sep 9th 2005 Martin Gühmann)
+//
+//----------------------------------------------------------------------------
 
 #include "c3.h"
 #include "DiplomacyDetails.h"
@@ -52,36 +81,35 @@
 
 #include "mapanalysis.h"
 #include "intelligencewindow.h"
-#include "colorset.h"
+#include "colorset.h"           // g_colorSet
 #include "aui_blitter.h"
 #include "aui_stringtable.h"
 #include "AgreementMatrix.h"
 
 #include "ctp2_hypertextbox.h"
 
-static DiplomacyDetails *s_DiplomacyDetails;
-static MBCHAR *s_DiplomacyDetailsBlock = "DiplomacyDetails";
+static DiplomacyDetails     *s_DiplomacyDetails;
+static MBCHAR               *s_DiplomacyDetailsBlock = "DiplomacyDetails";
 
-#define k_INT_FLAG_COL		0
-#define k_INT_NATION_COL	1		
-#define k_INT_REGARD_COL	2		
-#define k_INT_STRENGTH_COL	3		
-#define k_INT_EMBASSY_COL	4		
-#define k_INT_TREATIES_COL	5		
+#define k_INT_FLAG_COL      0
+#define k_INT_NATION_COL    1
+#define k_INT_REGARD_COL    2
+#define k_INT_STRENGTH_COL  3
+#define k_INT_EMBASSY_COL   4
+#define k_INT_TREATIES_COL  5
 
-#define k_WEAK_STRENGTH -50
-#define k_EQUAL_STRENGTH 0
-#define k_STRONG_STRENGTH 50
+#define k_WEAK_STRENGTH   -50
+#define k_EQUAL_STRENGTH    0
+#define k_STRONG_STRENGTH  50
 
-extern C3UI *g_c3ui;
-ctp2_Button	*DiplomacyDetails::m_cancelButton = NULL;
+extern C3UI                 *g_c3ui;
 
-ctp2_ListBox *DiplomacyDetails::sm_list = NULL;
-extern ColorSet *g_colorSet;
-aui_StringTable *DiplomacyDetails::sm_strengthImages = NULL;
-aui_StringTable *DiplomacyDetails::sm_embassyImages = NULL;
+ctp2_Button                 *DiplomacyDetails::m_cancelButton = NULL;
+ctp2_ListBox                *DiplomacyDetails::sm_list = NULL;
+aui_StringTable             *DiplomacyDetails::sm_strengthImages = NULL;
+aui_StringTable             *DiplomacyDetails::sm_embassyImages = NULL;
 
-sint32 DiplomacyDetails::detailPlayer;
+sint32                      DiplomacyDetails::detailPlayer;
 
 DiplomacyDetails::DiplomacyDetails(AUI_ERRCODE *err)
 {
@@ -121,7 +149,7 @@ AUI_ERRCODE DiplomacyDetails::Initialize()
 		return AUI_ERRCODE_OK;
 
 	
-	AUI_ERRCODE err;
+	AUI_ERRCODE err = AUI_ERRCODE_OK;
 	s_DiplomacyDetails = new DiplomacyDetails(&err);
 
 	Assert(err == AUI_ERRCODE_OK);
@@ -309,7 +337,7 @@ AUI_ERRCODE DiplomacyDetails::Display(Unit *cfdshk)
 					item->SetUserData((void*)p);
 					sm_list->AddItem(item);
 				}
-			}		
+			}
 
 
 
@@ -470,7 +498,7 @@ AUI_ERRCODE DiplomacyDetails::Display(Unit *cfdshk)
 				strcpy(interp,g_theStringDB->GetNameStr("str_ldl_DipDetails_EmpireSize"));
 				
 				if(strchr(interp, '{'))
-					*strchr(interp,'{')=0;	
+					*strchr(interp,'{')=0;
 				strcat(interp,needEmbassy);
 				st = (ctp2_Static *)aui_Ldl::GetObject(s_DiplomacyDetailsBlock, "TabGroup.Tab2.TabPanel.EmpireSizeLabel");
 				st->SetText(interp);
@@ -479,7 +507,7 @@ AUI_ERRCODE DiplomacyDetails::Display(Unit *cfdshk)
 				interp[0] = 0;
 				strcpy(interp,g_theStringDB->GetNameStr("str_ldl_DipDetails_Population"));
 				if(strchr(interp, '%'))
-					*strchr(interp,'%')=0;	
+					*strchr(interp,'%')=0;
 				strcat(interp,needEmbassy);
 				st = (ctp2_Static *)aui_Ldl::GetObject(s_DiplomacyDetailsBlock, "TabGroup.Tab2.TabPanel.PopulationLabel");
 				st->SetText(interp);
@@ -488,7 +516,7 @@ AUI_ERRCODE DiplomacyDetails::Display(Unit *cfdshk)
 				interp[0] = 0;
 				strcpy(interp,g_theStringDB->GetNameStr("str_ldl_DipDetails_Capital"));
 				if(strchr(interp, '{'))
-					*strchr(interp,'{')=0;	
+					*strchr(interp,'{')=0;
 				strcat(interp,needEmbassy);
 				st = (ctp2_Static *)aui_Ldl::GetObject(s_DiplomacyDetailsBlock, "TabGroup.Tab2.TabPanel.CapitalLabel");
 				st->SetText(interp);
@@ -497,7 +525,7 @@ AUI_ERRCODE DiplomacyDetails::Display(Unit *cfdshk)
 				interp[0] = 0;
 				strcpy(interp,g_theStringDB->GetNameStr("str_ldl_DipDetails_LargestCity"));
 				if(strchr(interp, '{'))
-					*strchr(interp,'{')=0;	
+					*strchr(interp,'{')=0;
 				strcat(interp,needEmbassy);
 				st = (ctp2_Static *)aui_Ldl::GetObject(s_DiplomacyDetailsBlock, "TabGroup.Tab2.TabPanel.LargestCityLabel");
 				st->SetText(interp);
@@ -506,7 +534,7 @@ AUI_ERRCODE DiplomacyDetails::Display(Unit *cfdshk)
 				interp[0] = 0;
 				strcpy(interp,g_theStringDB->GetNameStr("str_ldl_DipDetails_MilitaryState"));
 				if(strchr(interp, '{'))
-					*strchr(interp,'{')=0;	
+					*strchr(interp,'{')=0;
 				strcat(interp,needEmbassy);
 				st = (ctp2_Static *)aui_Ldl::GetObject(s_DiplomacyDetailsBlock, "TabGroup.Tab2.TabPanel.MilStateLabel");
 				st->SetText(interp);
@@ -515,7 +543,7 @@ AUI_ERRCODE DiplomacyDetails::Display(Unit *cfdshk)
 				interp[0] = 0;
 				strcpy(interp,g_theStringDB->GetNameStr("str_ldl_DipDetails_GovType"));
 				if(strchr(interp, '{'))
-					*strchr(interp,'{')=0; 
+					*strchr(interp,'{')=0;
 				strcat(interp,needEmbassy);
 				st = (ctp2_Static *)aui_Ldl::GetObject(s_DiplomacyDetailsBlock, "TabGroup.Tab2.TabPanel.GovTypeLabel");
 				st->SetText(interp);
@@ -524,7 +552,7 @@ AUI_ERRCODE DiplomacyDetails::Display(Unit *cfdshk)
 				interp[0] = 0;
 				strcpy(interp,g_theStringDB->GetNameStr("str_ldl_DipDetails_NowResearching"));
 				if(strchr(interp, '{'))
-					*strchr(interp,'{')=0;	
+					*strchr(interp,'{')=0;
 
 				st = (ctp2_Static *)aui_Ldl::GetObject(s_DiplomacyDetailsBlock, "TabGroup.Tab3.TabPanel.NowResearchLabel");
 				st->SetText(interp);
@@ -764,7 +792,7 @@ AUI_ERRCODE DiplomacyDetails::DrawPlayerStrength(ctp2_Static *control,
 	else if(relativeStrength < k_EQUAL_STRENGTH) imageName = sm_strengthImages->GetString(1);
 	else if(relativeStrength < k_STRONG_STRENGTH) imageName = sm_strengthImages->GetString(2);
 	else imageName = sm_strengthImages->GetString(3);
-											   
+
 	
 	if(imageName) {
 		image = g_c3ui->LoadImage(imageName);

@@ -27,6 +27,7 @@
 // - Prevented memory leak report (not an actual leak).
 // - Added second World::GetGood method, usefull if you already have a Cell
 //   pointer. - May 18th 2005 Martin Gühmann
+// - Prevented crash with multiple instances of an improvement that is deleted.
 //
 //----------------------------------------------------------------------------
 
@@ -42,8 +43,7 @@
 #include "CityRadius.h"
 #ifdef _DEBUG
 #include "pixelutils.h"
-#include "colorset.h"
-extern ColorSet *g_colorSet;
+#include "colorset.h"           // g_colorSet
 #endif
 #include "TradeDynArr.h"
 #include "RandGen.h"
@@ -875,15 +875,11 @@ void World::CutImprovements(const MapPoint &point)
 		}
 	}
 
-	if(thisCell->GetNumImprovements() > 0) {
-		
-		
-		
-		
-		sint32 i;
-		for(i = thisCell->GetNumImprovements() - 1; i >= 0; i--) {
-			thisCell->AccessImprovement(i).Kill();
-		}
+    // A for-loop looks better, but does not work, because Kill may modify
+    // multiple indices.
+    while (thisCell->GetNumImprovements() > 0)
+    {
+		thisCell->AccessImprovement(thisCell->GetNumImprovements()- 1).Kill();
 	}
 
 	while(thisCell->GetNumDBImprovements()) {
@@ -894,7 +890,7 @@ void World::CutImprovements(const MapPoint &point)
 		if(rec && rec->GetIntBorderRadius(intRad)) {
 			rec->GetSquaredBorderRadius(sqRad);
 			MapPoint ISuck = point;
-			terrainutil_RemoveBorders(ISuck, thisCell->GetOwner(), intRad, sqRad, Unit(0));
+			terrainutil_RemoveBorders(ISuck, thisCell->GetOwner(), intRad, sqRad, Unit());
 		}
 		thisCell->RemoveDBImprovement(thisCell->GetDBImprovement(0));
 	}
