@@ -66,9 +66,6 @@ public:
 	~MapGrid()
 	{
 		s_scratch.resize(0);
-		
-		
-		m_values.free();
 	}
 	
 	

@@ -116,5 +116,7 @@
 
 #define CTP2_ENABLE_SLICDEBUG 1
 
+#define YY_NO_UNISTD_H
+
 #endif
 

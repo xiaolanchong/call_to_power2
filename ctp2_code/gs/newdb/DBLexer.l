@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "DBTokens.h"
+#include "ctp2_config.h"
 
 int g_dblexerLineNumber;
 %}
