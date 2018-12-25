@@ -61,6 +61,6 @@
 		};
 	};	// namespace std
 #endif	// _MSC_VER < 1300
-
+#include <algorithm>
 #endif
 

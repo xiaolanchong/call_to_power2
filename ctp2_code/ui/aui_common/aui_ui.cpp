@@ -332,7 +332,7 @@ aui_UI::~aui_UI()
 	free_crc();
 }
 
-void aui_UI::RegisterObject( aui_Blitter *blitter )
+void aui_UI::RegisterObject( aui::IBlitter *blitter )
 {
 	Assert( blitter != NULL );
 	if ( blitter ) m_blitter = blitter;

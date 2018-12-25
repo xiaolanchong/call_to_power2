@@ -23,7 +23,7 @@ typedef aui_DirectBlitter aui_NativeBlitter;
 
 class aui_DirectBlitter : public aui_Blitter
 {
-public:
+protected:
 	
 	aui_DirectBlitter()
 	{
@@ -39,7 +39,7 @@ public:
 	virtual NakedStretchBltFunc StretchBlt16To16;
 	virtual NakedColorStencilBltFunc ColorStencilBlt16;
 
-protected:
+private:
 	DDBLTFX m_ddbfx;
 };
 

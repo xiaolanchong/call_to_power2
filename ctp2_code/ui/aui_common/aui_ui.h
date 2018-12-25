@@ -157,7 +157,7 @@ protected:
 	AUI_ERRCODE CreateScreen( void );
 
 public:
-	void RegisterObject( aui_Blitter *blitter );
+	void RegisterObject( aui::IBlitter *blitter );
 	void RegisterObject( aui_Mouse *mouse );
 	void RegisterObject( aui_Keyboard *keyboard );
 	void RegisterObject( aui_MemMap *memmap );
@@ -233,7 +233,7 @@ public:
 
 	aui_Surface		*Secondary( void ) const { return m_secondary; }
 	aui_Surface		*Primary( void ) const { return m_primary; }
-	aui_Blitter		*TheBlitter( void ) const { return m_blitter; }
+	aui::IBlitter	*TheBlitter( void ) const { return m_blitter; }
 	aui_MemMap		*TheMemMap( void ) const { return m_memmap; }
 	aui_Mouse		*TheMouse( void ) const { return m_mouse; }
 	aui_Keyboard	*TheKeyboard( void ) const { return m_keyboard; }
@@ -443,7 +443,7 @@ protected:
 
 	aui_Surface		*m_primary;		
 	aui_Surface		*m_secondary;
-	aui_Blitter		*m_blitter;		
+	aui::IBlitter   *m_blitter;
 	aui_MemMap		*m_memmap;		
 	aui_Mouse		*m_mouse;		
 	aui_Keyboard	*m_keyboard;	

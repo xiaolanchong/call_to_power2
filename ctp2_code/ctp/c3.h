@@ -99,7 +99,6 @@
 #endif // WIN32
 
 #include "minmax.h"
-#include <algorithm>
 
 #if defined(WIN32)
 #include <tchar.h>

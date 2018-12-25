@@ -26,6 +26,7 @@
     <SccProjectName>"$/ctp", BAAAAAAA</SccProjectName>
     <SccLocalPath>..\..\ctp</SccLocalPath>
     <ProjectGuid>{449EF459-6E5A-4AB1-BB16-58E96B2F43C7}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" Label="Configuration">
@@ -281,11 +282,11 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">$(ProjectDir)lex.yy.c;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug Browse|Win32'">$(CDKDIR)\flex -i -o$(ProjectDir)lex.yy.c %(FullPath)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Browse|Win32'">$(ProjectDir)lex.yy.c;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(CDKDIR)\flex -i  -o $(ProjectDir)lex.yy.c %(FullPath)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(CDKDIR)\flex -i  -o$(ProjectDir)lex.yy.c %(FullPath)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)lex.yy.c;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(CDKDIR)\flex -i -o$(ProjectDir)lex.yy.c %(FullPath)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)lex.yy.c;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Performing Custom Build Tools: $(InputPath)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Performing Custom Build Tools on %(Identity)</Message>
     </CustomBuild>
     <CustomBuild Include="ctpdb.y">
       <Command Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">$(CDKDIR)\byacc -d ctpdb.y</Command>
