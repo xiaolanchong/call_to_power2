@@ -555,7 +555,7 @@ aui_BitmapFont::GlyphInfo *aui_BitmapFont::GetGlyphInfo( MBCHAR c )
 		{
 			aui_Surface *cache;
 
-			cache = new aui_Surface(
+			cache = new aui_MemSurface(
 				&errcode,
 				k_AUI_BITMAPFONT_SURFACEWIDTH,
 				m_maxHeight,

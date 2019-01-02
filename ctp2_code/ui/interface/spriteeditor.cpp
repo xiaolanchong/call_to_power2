@@ -703,7 +703,7 @@ SpriteEditWindow::LoadSprite(char *name)
 	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 
 	
-	m_spriteSurface=new aui_Surface(&errcode,m_spriteRect.right,m_spriteRect.bottom,16);
+	m_spriteSurface=new aui_MemSurface(&errcode,m_spriteRect.right,m_spriteRect.bottom,16);
 
 	
 	m_spriteData = m_currentSprite->GetGroupSprite((GAME_ACTION)m_animation);

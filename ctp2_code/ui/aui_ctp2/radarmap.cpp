@@ -310,7 +310,7 @@ void RadarMap::CalculateMetrics(void)
 	m_tempBuffer = (uint8 *)calloc((width + 2) * (height + 2), 2);
 	
 	AUI_ERRCODE err;
-	m_tempSurface = new aui_Surface(&err, width, height, 16, 2*(width + 2), &m_tempBuffer[2*((width + 2) + (1))]);
+	m_tempSurface = new aui_MemSurface(&err, width, height, 16, 2*(width + 2), &m_tempBuffer[2*((width + 2) + (1))]);
 }
 
 

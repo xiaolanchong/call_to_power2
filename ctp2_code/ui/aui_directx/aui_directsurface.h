@@ -41,7 +41,7 @@
 
 
 
-class aui_DirectSurface : public aui_Surface, public aui_DirectX
+class aui_DirectSurface : public aui_SurfaceImpl, private aui_DirectX
 {
 public:
 	
@@ -57,12 +57,13 @@ public:
 		LPDIRECTDRAWSURFACE back = NULL
 		);
 
+private:
 	virtual ~aui_DirectSurface();
 
-	virtual BOOL IsThisA( uint32 classId )
+	virtual BOOL IsThisA( uint32 classId ) override
 	{
 		return classId == m_directSurfaceClassId
-		||     aui_Surface::IsThisA( classId )
+		||     aui_SurfaceImpl::IsThisA( classId )
 		||     aui_DirectX::IsThisA( classId );
 	}
 
@@ -77,21 +78,23 @@ public:
 	virtual AUI_ERRCODE ReleaseDC( HDC hdc );
 
 	virtual AUI_ERRCODE Blank(const uint32 &color);
-	
+public:	
 	LPDIRECTDRAWSURFACE BUFFER ( void ) const { return (m_back == NULL) ? m_lpdds : m_back; }
 	LPDIRECTDRAWSURFACE DDS    ( void ) const { return m_lpdds; }
+private:
 	BOOL				IsDCGot( void ) const { return m_dcIsGot; }
 
 	
 	virtual BOOL IsOK( void ) const;
 	virtual void Flip();
 
+public:
 	static uint32 m_directSurfaceClassId;
 
-protected:
+private:
 	aui_DirectSurface()
 	:
-		aui_Surface (),
+		aui_SurfaceImpl (),
 		m_lpdds     (NULL),
 		m_back      (NULL)
 	{};

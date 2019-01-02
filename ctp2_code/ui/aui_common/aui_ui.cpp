@@ -272,7 +272,7 @@ AUI_ERRCODE aui_UI::InitCommon(
 AUI_ERRCODE aui_UI::CreateScreen( void )
 {
 	AUI_ERRCODE retcode = AUI_ERRCODE_OK;
-	m_primary   = new aui_Surface( &retcode, m_width, m_height, m_bpp, 0, NULL, TRUE  );
+	m_primary   = new aui_MemSurface( &retcode, m_width, m_height, m_bpp, 0, NULL, TRUE  );
 	Assert( AUI_NEWOK(m_primary,retcode) );
 	if ( !AUI_NEWOK(m_primary,retcode) ) return AUI_ERRCODE_MEMALLOCFAILED;
 

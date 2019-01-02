@@ -58,10 +58,10 @@ aui_DirectSurface::aui_DirectSurface(
 	BOOL useVideoMemory,
 	LPDIRECTDRAWSURFACE back)
 	:
-	aui_Surface(),
+	aui_SurfaceImpl(),
 	m_back      (back)
 {
-	*retval = aui_Surface::InitCommon( width, height, bpp, isPrimary );
+	*retval = aui_SurfaceImpl::InitCommon( width, height, bpp, isPrimary );
 	Assert( AUI_SUCCESS(*retval) );
 	if ( !AUI_SUCCESS(*retval) ) return;
 
@@ -89,8 +89,8 @@ aui_DirectSurface::aui_DirectSurface(
 			ddsd.ddsCaps.dwCaps |= DDSCAPS_VIDEOMEMORY;
 		else
 			ddsd.ddsCaps.dwCaps |= DDSCAPS_SYSTEMMEMORY;
-		ddsd.dwHeight = m_height;
-		ddsd.dwWidth = m_width;
+		ddsd.dwHeight = Height();
+		ddsd.dwWidth = Width();
 
 		hr = lpdd->CreateSurface( &ddsd, &m_lpdds, NULL );
 		Assert( hr == DD_OK );
@@ -227,7 +227,7 @@ aui_DirectSurface::aui_DirectSurface(
 	if ( hr == DD_OK )
 	{
 		m_pitch = ddsd.lPitch;
-		m_size = m_pitch * m_height;
+		m_size = Pitch() * Height();
 	//	m_saveBuffer = (uint8 *)ddsd.lpSurface; // This might become invalid
 		m_lpdds->Unlock( ddsd.lpSurface );
 	}
@@ -270,7 +270,7 @@ uint32 aui_DirectSurface::SetChromaKey( uint32 color )
 	HRESULT hr = m_lpdds->SetColorKey( DDCKEY_SRCBLT, &ddck );
 	Assert( hr == DD_OK );
 	if ( hr == DD_OK )
-		return aui_Surface::SetChromaKey( color );
+		return aui_SurfaceImpl::SetChromaKey( color );
 	else
 		return (uint32)-1;
 }
@@ -304,7 +304,7 @@ AUI_ERRCODE aui_DirectSurface::Lock( RECT *rect, LPVOID *buffer, DWORD flags )
 	memset( &ddsd, 0, sizeof( ddsd ) );
 	ddsd.dwSize = sizeof( ddsd );
 
-	if ( g_ui->DXVer() >= 0x500 && !m_isPrimary ) flags |= DDLOCK_NOSYSLOCK;
+	if ( g_ui->DXVer() >= 0x500 && !aui_SurfaceImpl::IsPrimary()) flags |= DDLOCK_NOSYSLOCK;
 
 	HRESULT hr;
 

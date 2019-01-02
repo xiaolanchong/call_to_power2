@@ -743,7 +743,7 @@ void aui_Window::SetStencilFromImage(const MBCHAR *imageFileName)
 	if(!image)
 		return;
 
-	aui_Surface tempSurface(
+	aui_MemSurface tempSurface(
 		&errcode,
 		m_surface->Width(),
 		m_surface->Height(),

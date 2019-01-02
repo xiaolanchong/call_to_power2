@@ -134,7 +134,7 @@ AUI_ERRCODE aui_Image::LoadFileMapped( sint32 width, sint32 height,
 {
 	AUI_ERRCODE retcode = AUI_ERRCODE_OK;
 
-	m_surface = new aui_Surface(
+	m_surface = new aui_MemSurface(
 	    &retcode,
 	    width,
 	    height,

@@ -38,18 +38,18 @@
 
 
 
-sint32 aui_Surface::m_surfaceRefCount = 0;
+sint32 aui_SurfaceImpl::m_surfaceRefCount = 0;
 #ifdef USE_SDL
-SDL_mutex *		aui_Surface::m_cs = 0;
+SDL_mutex *		aui_SurfaceImpl::m_cs = 0;
 #else
-CRITICAL_SECTION	aui_Surface::m_cs;
+CRITICAL_SECTION	aui_SurfaceImpl::m_cs;
 #endif
-uint32 aui_Surface::m_surfaceClassId = aui_UniqueId();
+uint32 aui_SurfaceImpl::m_surfaceClassId = aui_UniqueId();
 
 extern sint32 g_is565Format;
 
 
-aui_Surface::aui_Surface(
+aui_SurfaceImpl::aui_SurfaceImpl(
 	AUI_ERRCODE *retval,
 	sint32 width,
 	sint32 height,
@@ -116,7 +116,7 @@ aui_Surface::aui_Surface(
 	}
 }
 
-AUI_ERRCODE aui_Surface::InitCommon( sint32 width, sint32 height, sint32 bpp, BOOL isPrimary )
+AUI_ERRCODE aui_SurfaceImpl::InitCommon( sint32 width, sint32 height, sint32 bpp, BOOL isPrimary )
 {
 	m_pixelFormat = AUI_SURFACE_PIXELFORMAT_UNKNOWN,
 	m_chromaKey = 0x00000000,
@@ -168,7 +168,7 @@ AUI_ERRCODE aui_Surface::InitCommon( sint32 width, sint32 height, sint32 bpp, BO
 
 
 
-aui_Surface::~aui_Surface()
+aui_SurfaceImpl::~aui_SurfaceImpl()
 {
 	if ( m_allocated )
 	{
@@ -199,7 +199,7 @@ aui_Surface::~aui_Surface()
 
 
 
-uint32 aui_Surface::SetChromaKey( uint32 color )
+uint32 aui_SurfaceImpl::SetChromaKey( uint32 color )
 {
 	uint32 prevColor = m_chromaKey;
 	m_chromaKey = color;
@@ -208,7 +208,7 @@ uint32 aui_Surface::SetChromaKey( uint32 color )
 
 
 
-uint32 aui_Surface::SetChromaKey( uint8 red, uint8 green, uint8 blue )
+uint32 aui_SurfaceImpl::SetChromaKey(uint8 red, uint8 green, uint8 blue )
 {
 	sint32 r = red, g = green, b = blue;
 
@@ -276,7 +276,7 @@ uint32 aui_Surface::SetChromaKey( uint8 red, uint8 green, uint8 blue )
 
 
 
-AUI_ERRCODE aui_Surface::Lock( RECT *rect, LPVOID *buffer, DWORD flags )
+AUI_ERRCODE aui_SurfaceImpl::Lock( RECT *rect, LPVOID *buffer, DWORD flags )
 {
 	*buffer = NULL;
 
@@ -291,14 +291,14 @@ AUI_ERRCODE aui_Surface::Lock( RECT *rect, LPVOID *buffer, DWORD flags )
 
 
 
-AUI_ERRCODE aui_Surface::Unlock( LPVOID buffer )
+AUI_ERRCODE aui_SurfaceImpl::Unlock( LPVOID buffer )
 {
 	return ManipulateLockList( NULL, &buffer, AUI_SURFACE_LOCKOP_REMOVE );
 }
 
 
 #ifdef __AUI_USE_DIRECTX__
-AUI_ERRCODE aui_Surface::GetDC(HDC * hdc)
+AUI_ERRCODE aui_SurfaceImpl::GetDC(HDC * hdc)
 {
 	Assert(hdc);
 	if (!hdc) return AUI_ERRCODE_INVALIDPARAM;
@@ -350,7 +350,7 @@ AUI_ERRCODE aui_Surface::GetDC(HDC * hdc)
 }
 
 
-AUI_ERRCODE aui_Surface::ReleaseDC(HDC hdc)
+AUI_ERRCODE aui_SurfaceImpl::ReleaseDC(HDC hdc)
 {
 	if (hdc != m_hdc) return AUI_ERRCODE_INVALIDPARAM;
 
@@ -396,12 +396,12 @@ AUI_ERRCODE aui_Surface::ReleaseDC(HDC hdc)
 }
 #endif // __AUI_USE_DIRECTX__
 
-AUI_ERRCODE aui_Surface::Blank(const uint32 &color)
+AUI_ERRCODE aui_SurfaceImpl::Blank(const uint32 &color)
 {
 	return AUI_ERRCODE_BLTFAILED;
 }
 
-AUI_ERRCODE aui_Surface::BlankRGB(const uint8 &red, const uint8 &green, const uint8 &blue)
+AUI_ERRCODE aui_SurfaceImpl::BlankRGB(const uint8 &red, const uint8 &green, const uint8 &blue)
 {
 	switch ( m_pixelFormat )
 	{
@@ -427,7 +427,7 @@ AUI_ERRCODE aui_Surface::BlankRGB(const uint8 &red, const uint8 &green, const ui
 }
 
 
-inline BOOL aui_Surface::IsLocked( RECT *rect )
+inline BOOL aui_SurfaceImpl::IsLocked( RECT *rect )
 {
 	aui_SurfaceSubset *subset = m_locklist;
 	for ( sint32 i = k_SURFACE_MAXLOCK; i; i--, subset++ )
@@ -437,7 +437,7 @@ inline BOOL aui_Surface::IsLocked( RECT *rect )
 	return FALSE;
 }
 
-inline BOOL aui_Surface::IsLocked( LPVOID buffer )
+inline BOOL aui_SurfaceImpl::IsLocked( LPVOID buffer )
 {
 	aui_SurfaceSubset *subset = m_locklist;
 	for ( sint32 i = k_SURFACE_MAXLOCK; i; i--, subset++ )
@@ -449,7 +449,7 @@ inline BOOL aui_Surface::IsLocked( LPVOID buffer )
 
 
 
-AUI_ERRCODE aui_Surface::ManipulateLockList( RECT *rect, LPVOID *buffer, AUI_SURFACE_LOCKOP op )
+AUI_ERRCODE aui_SurfaceImpl::ManipulateLockList( RECT *rect, LPVOID *buffer, AUI_SURFACE_LOCKOP op )
 {
 	AUI_ERRCODE errcode = AUI_ERRCODE_OK;
 #ifdef USE_SDL
