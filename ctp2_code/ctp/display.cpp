@@ -318,17 +318,25 @@ int display_Initialize(HINSTANCE hInstance, int iCmdShow)
 
 		monInfo->cbSize = sizeof(MONITORINFO);
 		GetMonitorInfo(device->hMon, monInfo);
-
+#ifdef FULLSCREEN
 		g_ScreenWidth = monInfo->rcMonitor.right - monInfo->rcMonitor.left;
 		g_ScreenHeight = monInfo->rcMonitor.bottom - monInfo->rcMonitor.top;
+#else
+		g_ScreenWidth = 800;
+		g_ScreenHeight = 600;
+#endif
 
 		g_displayDevice.rect = monInfo->rcMonitor;
 
 		delete monInfo;
 	} else {
-		
+#ifdef FULLSCREEN		
 		g_ScreenWidth = GetSystemMetrics(SM_CXSCREEN);
 		g_ScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+#else
+	g_ScreenWidth = 800;
+	g_ScreenHeight = 600;
+#endif
 
 		SetRect(&g_displayDevice.rect, 0, 0, g_ScreenWidth, g_ScreenHeight);
 	}
@@ -360,6 +368,10 @@ int display_Initialize(HINSTANCE hInstance, int iCmdShow)
 			g_ScreenWidth = mode->width;
 			g_ScreenHeight = mode->height;
 		}
+#ifndef FULLSCREEN
+		g_ScreenWidth = 800;
+		g_ScreenWidth = 600;
+#endif
 	}
 
 	

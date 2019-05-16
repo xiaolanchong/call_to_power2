@@ -115,6 +115,7 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
+    <Import Project="..\gs\dbgen\gnu.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Test|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -416,7 +417,7 @@
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>..\os\include;..\os\common;..\os\win32;..\ctp\ctp2_utils\;..\ctp\ctp2_rsrc\;..\ctp\debugtools;..\libs\freetype\lib;..\libs\freetype\utils\;..\libs\freetype\win32\;..\libs\freetype\utils;..\libs\freetype\win32;..\ui\interface;..\ui\netshell;..\robot\utility;..\robot\pathing;..\robot\aibackdoor;..\libs\freetype\;..\gfx\spritesys\;..\gfx\tilesys\;..\gfx\gfx_utils\;..\gs\database;..\gs\fileio\;..\gs\gameobj\;..\gs\utility\;..\gs\world\;..\net\io\;..\net\general\;..\ui\aui_utils\;..\ui\aui_sdl\;..\ui\aui_directx\;..\ui\aui_ctp2\;..\ui\aui_common\;..\libs\tiff\;..\libs\anet\h\;..\mm\;..\robotcom\backdoor;..\gs\slic;..\gfx\layers;..\mapgen;..\ui\freetype;..\sound;..\GameWatch\gamewatch;..\GameWatch\gwciv;..\libs\miles;..\ctp\fingerprint;..\libs\zlib;..\ui\slic_debug;..\gs\outcom;..\ctp\;..\ui\aui_common;..\ui\ldl;..\gs\events;..\gs\newdb;..\ai\diplomacy;..\ai;..\ai\mapanalysis;..\ai\strategy\scheduler;..\ai\strategy\agents;..\ai\strategy\goals;..\ai\strategy\squads;..\ai\citymanagement;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\os\include;..\os\common;..\os\win32;..\ctp\ctp2_utils\;..\ctp\ctp2_rsrc\;..\ctp\debugtools;..\libs\freetype\lib;..\libs\freetype\utils\;..\libs\freetype\win32\;..\libs\freetype\utils;..\libs\freetype\win32;..\ui\interface;..\ui\netshell;..\robot\utility;..\robot\pathing;..\robot\aibackdoor;..\libs\freetype\;..\gfx\spritesys\;..\gfx\tilesys\;..\gfx\gfx_utils\;..\gs\database;..\gs\fileio\;..\gs\gameobj\;..\gs\utility\;..\gs\world\;..\net\io\;..\net\general\;..\ui\aui_utils\;..\ui\aui_sdl\;..\ui\aui_directx\;..\ui\aui_ctp2\;..\ui\aui_common\;..\libs\tiff\;..\libs\anet\h\;..\mm\;..\robotcom\backdoor;..\gs\slic;..\gfx\layers;..\mapgen;..\ui\freetype;..\sound;..\GameWatch\gamewatch;..\GameWatch\gwciv;..\libs\miles;..\ctp\fingerprint;..\libs\zlib;..\ui\slic_debug;..\gs\outcom;..\ctp\;..\ui\aui_common;..\ui\ldl;..\gs\events;..\gs\newdb;..\ai\diplomacy;..\ai;..\ai\mapanalysis;..\ai\strategy\scheduler;..\ai\strategy\agents;..\ai\strategy\goals;..\ai\strategy\squads;..\ai\citymanagement;..\..\dshow\baseclasses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;__GW_USE_IMPORT;__GWCIV_USE_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>.\Release\civctp.pch</PrecompiledHeaderOutputFile>
@@ -447,7 +448,8 @@
       <SubSystem>Windows</SubSystem>
       <IgnoreSpecificDefaultLibraries>libcd.lib;libc.lib;libcmtd.lib;libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <OutputFile>ctp2r.exe</OutputFile>
-      <AdditionalDependencies>..\libs\anet\win\lib\anet2.lib;imagehlp.lib;..\libs\GameWatch\gamewatch.lib;..\libs\GameWatch\gwciv.lib;amstrmid.lib;strmbasd.lib;quartz.lib;winmm.lib;dxguid.lib;ddraw.lib;dinput.lib;dsound.lib;..\libs\tiff\libtiff.lib;..\ui\freetype\freetype.lib;vfw32.lib;..\libs\miles\mss32.lib;..\libs\zlib\zlib.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\libs\anet\win\lib\anet2.lib;imagehlp.lib;..\libs\GameWatch\gamewatch.lib;..\libs\GameWatch\gwciv.lib;amstrmid.lib;quartz.lib;winmm.lib;dxguid.lib;ddraw.lib;..\libs\dinput.lib;dsound.lib;..\libs\tiff\libtiff.lib;..\ui\freetype\freetype.lib;vfw32.lib;..\libs\miles\mss32.lib;..\libs\zlib\zlib.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Optimized Test|Win32'">
